@@ -11,6 +11,7 @@ const port = 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
+// USAR LA CARPETA IMAGEN DE MANERA MAS CORRECTA
 app.use(express.static('Image'));
 
 app.get("/", function(rec, res){

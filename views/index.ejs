@@ -29,10 +29,10 @@
             <script>
                 // Datos de productos
                 const productos = [
-                    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "../Image/Producto.png"},
-                    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "../Image/Producto.png"},
-                    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "../Image/Producto.png"},
-                    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "../Image/Producto.png"}
+                    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Producto.png"},
+                    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Producto.png"},
+                    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "/Producto.png"},
+                    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "/Producto.png"}
                 ];
                 
                 // Obtener el contenedor donde se añadirán las cards
@@ -48,7 +48,7 @@
                                     ${producto.descuento}
                                 </span>
 
-                                <img src="/Producto.png" class="card-img-top" alt="Producto">
+                                <img src=${producto.imagen} class="card-img-top" alt="Producto">
 
                                 <div class="card-body d-flex flex-column"> <h5 class="card-title">${producto.nombre}</h5>
                                     <h6 class="card-subtitle mb-2 text-primary">$${producto.precio.toLocaleString()}</h6>
