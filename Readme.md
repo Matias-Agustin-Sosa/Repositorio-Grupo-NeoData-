@@ -20,8 +20,8 @@
 
 # Nuestro Cliente
 
->Una importante firma de E-Commerce nos ha contactado con un objetivo claro, transformar la gestion de su inventario y clientes de manera manual a una automatizada con una App.
-La meta principal es la digitalización completa de esta labor, lo que permitirá agilizar los procesos y minimizar errores. Esto se logrará a través de la automatización de la consulta y el cruce de información.
+>Una importante firma de E-Commerce nos ha contactado con un objetivo claro, transformar la gestion de su inventario y clientes de manera manual a una automatizada con una App.<br>
+La meta principal es la digitalización completa de esta labor, lo que permitirá agilizar los procesos y minimizar errores. Esto se logrará a través de la automatización de la consulta y el cruce de información.<br>
 Además, el cliente tiene una visión a futuro para este proyecto. Esto facilitará enormemente el acceso y la gestión de la información al personal que no tiene conocimientos en MySQL, democratizando el uso de la herramienta.<br>
 
 # Nuestra propuesta
