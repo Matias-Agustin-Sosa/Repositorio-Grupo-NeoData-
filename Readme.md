@@ -27,7 +27,7 @@ Además, el cliente tiene una visión a futuro para este proyecto. Busca que est
 # Nuestra propuesta
 
 >Una vez comprendidos los objetivos y necesidades de nuestro cliente, procedimos a la fase de planificación, seguida de la implementación del plan de acción.<br>
-Como parte de este proceso, desarrollamos dos tipos de diagramas clave: el Diagrama de Entidad-Relación (DER) y el Diagrama Lógico Relacional (DLR). Ambos fueron presentados al cliente para su aprobación, asegurando así que nuestra propuesta se alineara perfectamente con sus expectativas.<br>
+Como parte de este proceso, desarrollamos dos tipos de diagramas clave: el Diagrama de Entidad-Relación (DER) y el Diagrama Lógico Relacional (DLR). Ambos fueron presentados al cliente para su aprobación, asegurando así que nuestra propuesta se alineara perfectamente con sus expectativas y necesides.<br>
 A continuación, se pueden visualizar dichos diagramas:
 
 ## Diagrama de Entidad-Relación (DER)
