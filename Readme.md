@@ -47,7 +47,7 @@ A continuación, se pueden visualizar dichos diagramas:
  <p align="center">
  <a href="https://www.mysql.com/products/workbench/" target="_blank" rel="noreferrer"> <img  src="Imagenes\Logo MySQL.png" alt="MySQL" width="75" height="75"/> 
  </a> 
- <a href="https://www.drawio.com/blog" target="_blank" rel="noreferrer"> <img src="Imagenes\Draw.io.png" alt="Draw.io" width="75" height="75"/> 
+ <a href="https://developer.mozilla.org/es/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Js.io.png" alt="Draw.io" width="75" height="75"/> 
  </a> 
  </p>
 
