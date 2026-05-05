@@ -20,9 +20,8 @@
 
 # Nuestro Cliente
 
->Una importante firma de E-Commerce nos ha contactado con un objetivo claro, transformar la gestion de su inventario y clientes de manera manual a una automatizada con una App.<br>
-La meta principal es la digitalización completa de esta labor, lo que permitirá agilizar los procesos y minimizar errores. Esto se logrará a través de la automatización de la consulta y el cruce de información.<br>
-Además, el cliente tiene una visión a futuro para este proyecto. Esto facilitará enormemente el acceso y la gestión de la información al personal que no tiene conocimientos en MySQL, democratizando el uso de la herramienta.<br>
+>Una destacada firma de e-commerce nos ha encomendado el desafío de transformar su gestión de inventario y clientes, migrando de un sistema manual a una solución móvil automatizada. <br>
+El objetivo central es la digitalización integral de los procesos, lo que permitirá optimizar los tiempos de respuesta y reducir drásticamente el margen de error operativo. Con una visión a largo plazo, el proyecto busca democratizar el acceso a la información, permitiendo que el personal sin conocimientos técnicos en MySQL pueda gestionar los datos de manera intuitiva y eficiente.
 
 # Nuestra propuesta
 
@@ -55,4 +54,4 @@ A continuación, se pueden visualizar dichos diagramas:
 
 # Producto
 
->El archivo "Base de datos Patinadores.sql" contiene el código final de la base de datos entregada al cliente. Este incluye datos precargados de prueba, así como consultas que utilizan funciones JOIN. Estas consultas demuestran el perfecto funcionamiento de la base de datos y la integridad de sus relaciones.
+>El archivo neodatashop.js contiene el código final de la App entregada al cliente. Este incluye datos precargados de prueba, configuracion del servidor y rutas optimizadas.
