@@ -18,10 +18,6 @@
 
 >Somos un equipo de desarrolladores de software que proporciona soluciones de Front-End, Back-End y almacenamiento de datos. Nuestro profesionalismo y alto conocimiento en las diferentes áreas nos permite brindar uno de los mejores servicios disponibles en el mercado actual. Además de la utilización y aplicación de tecnología de alto nivel y eficiencia, que garantiza a nuestros clientes productos siempre actualizados y acordes a los tiempos actuales.
 
-<p align="center">
-<img src="Imagenes\Equipo.png" alt="Equipo de Desarrollo" width="650">
-</p>
-
 # Nuestro Cliente
 
 >Un importante organizador de eventos de patinaje deportivo de alto nivel nos ha contactado con un objetivo claro: transformar la gestión de sus datos de patinadores. Actualmente, dependen de un proceso manual y, según sus palabras, "desgastante".<br>
