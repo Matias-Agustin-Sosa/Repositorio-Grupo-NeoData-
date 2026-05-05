@@ -47,9 +47,9 @@ A continuación, se pueden visualizar dichos diagramas:
  <p align="center">
  <a href="https://www.mysql.com/products/workbench/" target="_blank" rel="noreferrer"> <img  src="Imagenes\Logo MySql.png" alt="MySQL" width="75" height="75"/> 
  </a> 
- <a href="https://developer.mozilla.org/es/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Js.png" alt="Draw.io" width="75" height="75"/> 
+ <a href="https://developer.mozilla.org/es/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Js.png" alt="Js" width="75" height="75"/> 
  </a> 
- <a href="" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Ejs%.png" alt="Draw.io" width="75" height="75"/> 
+ <a href="" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Ejs.png" alt="Ejs" width="75" height="75"/> 
  </a>
  </p>
 
