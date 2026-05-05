@@ -1,6 +1,6 @@
 # Proyecto Grupal Grupo ° 4 - NeoData Shop
 
-<img src="Imagenes\Portada.png" alt="Equipo de Desarrollo" width="900">
+<img src="Imagenes_Readme\Portada.png" alt="Equipo de Desarrollo" width="900">
 
 # Índice
 
@@ -13,7 +13,7 @@
 # Nosotros
 
 <p align="center">
-<img src="Imagenes\Logo.png" alt="Equipo de Desarrollo" width="250">
+<img src="Imagenes_Readme\Logo.png" alt="Equipo de Desarrollo" width="250">
 </p>
 
 >Somos un equipo de desarrolladores de software que proporciona soluciones de Front-End, Back-End y almacenamiento de datos. Nuestro profesionalismo y alto conocimiento en las diferentes áreas nos permite brindar uno de los mejores servicios disponibles en el mercado actual. Además de la utilización y aplicación de tecnología de alto nivel y eficiencia, que garantiza a nuestros clientes productos siempre actualizados y acordes a los tiempos actuales.
@@ -33,23 +33,23 @@ A continuación, se pueden visualizar dichos diagramas:
 ## Diagrama de Entidad-Relación (DER)
 
 <p align="center">
-<img src="Imagenes\DER.png" alt="Equipo de Desarrollo" width="650">
+<img src="Imagenes_Readme\DER.png" alt="Equipo de Desarrollo" width="650">
 </p>
 
 ## Diagrama Lógico Relacional (DLR)
 
 <p align="center">
-<img src="Imagenes\DLR.png" alt="Equipo de Desarrollo" width="650">
+<img src="Imagenes_Readme\DLR.png" alt="Equipo de Desarrollo" width="650">
 </p>
 
 # Tecnologías
 
  <p align="center">
- <a href="https://www.mysql.com/products/workbench/" target="_blank" rel="noreferrer"> <img  src="Imagenes\Logo MySql.png" alt="MySQL" width="75" height="75"/> 
+ <a href="https://www.mysql.com/products/workbench/" target="_blank" rel="noreferrer"> <img  src="Imagenes_Readme\Logo MySql.png" alt="MySQL" width="75" height="75"/> 
  </a> 
- <a href="https://developer.mozilla.org/es/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Js.png" alt="Js" width="75" height="75"/> 
+ <a href="https://developer.mozilla.org/es/docs/Web/JavaScript" target="_blank" rel="noreferrer"> <img src="Imagenes_Readme\Logo Js.png" alt="Js" width="75" height="75"/> 
  </a> 
- <a href="https://ejs.co/" target="_blank" rel="noreferrer"> <img src="Imagenes\Logo Ejs.png" alt="Ejs" width="75" height="75"/> 
+ <a href="https://ejs.co/" target="_blank" rel="noreferrer"> <img src="Imagenes_Readme\Logo Ejs.png" alt="Ejs" width="75" height="75"/> 
  </a>
  </p>
 
