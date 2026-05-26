@@ -119,7 +119,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-        // PERSISTENCIA: Al iniciar, intentamos recuperar los datos previos de LocalStorage [cite: 123]
+        // PERSISTENCIA: Al iniciar, intentamos recuperar los datos previos de LocalStorage
         const carritoGuardado = localStorage.getItem('carrito');
         let carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
 
@@ -217,7 +217,7 @@
             }
         }
 
-        // INTEGRACIÓN (FETCH POST): Envía el carrito guardado hacia el Backend [cite: 121, 153]
+        // INTEGRACIÓN (FETCH POST): Envía el carrito guardado hacia el Backend
         async function finalizarCompra() {
             if (carrito.length === 0) {
                 alert("El carrito está vacío."); 
@@ -225,17 +225,17 @@
             }
 
             try { 
-                // Hacemos el envío asíncrono en formato JSON [cite: 77, 129, 131]
+                // Hacemos el envío asíncrono en formato JSON
                 const respuesta = await fetch('/api/checkout', { 
                     method: 'POST', 
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carrito) // Empaquetamos los datos [cite: 132]
+                    body: JSON.stringify(carrito) // Empaquetamos los datos
                 });
 
                 const resultado = await respuesta.json(); 
-                alert(resultado.mensaje); // "Ticket generado con éxito..." [cite: 134]
+                alert(resultado.mensaje); // "Ticket generado con éxito..."
 
-                // Limpieza post-compra exitosa [cite: 135]
+                // Limpieza post-compra exitosa
                 carrito = [];
                 localStorage.removeItem('carrito');
                 actualizarInterfazCarrito();
