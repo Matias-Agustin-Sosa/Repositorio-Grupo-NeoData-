@@ -18,10 +18,10 @@ app.use(express.json());
 
 // Base de datos simulada en memoria [cite: 37]
 const listaProductos = [
-    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Producto.png"},
-    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Producto.png"},
-    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "/Producto.png"},
-    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "/Producto.png"}
+    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Smartwatch.png"},
+    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Celular.png"},
+    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "/Auriculares.png"},
+    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "/Mouse.png"}
 ];
 
 // ==========================================
