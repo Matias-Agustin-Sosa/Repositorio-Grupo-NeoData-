@@ -13,10 +13,10 @@ app.set('views', path.join(__dirname, 'views'));
 // CONFIGURACIÓN DE ARCHIVOS ESTÁTICOS
 app.use(express.static('Image'));
 
-// MIDDLEWARE: Permite que Express entienda el "body" en formato JSON [cite: 33, 34]
+// MIDDLEWARE: Permite que Express entienda el "body" en formato JSON
 app.use(express.json());  
 
-// Base de datos simulada en memoria [cite: 37]
+// Base de datos simulada en memoria
 const listaProductos = [
     { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Smartwatch.png"},
     { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Celular.png"},
@@ -33,13 +33,13 @@ app.get('/', (req, res) => {
 });
 
 // ==========================================
-// 2. ENDPOINT DE LA API (BACKEND - POST) [cite: 19]
+// 2. ENDPOINT DE LA API (BACKEND - POST) 
 // ==========================================
-// Aquí es donde el botón "Iniciar Pago" enviará el carrito usando Fetch [cite: 54, 121]
+// Aquí es donde el botón "Iniciar Pago" enviará el carrito usando Fetch
 app.post('/api/checkout', (req, res) => {
     const carritoRecibido = req.body;
     
-    console.log("¡NUEVA COMPRA RECIBIDA EN EL SERVIDOR!"); // Limpio sin el [cite]
+    console.log("¡NUEVA COMPRA RECIBIDA EN EL SERVIDOR!");
     console.log(carritoRecibido);
     
     res.json({ mensaje: "Ticket generado con éxito, gracias por su compra" });
