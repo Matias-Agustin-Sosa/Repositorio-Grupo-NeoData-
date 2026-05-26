@@ -3,94 +3,207 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
     <title>NeoData Shop</title>
     
-    <!-- Link a Bootstrap 5 (CDN) -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
-    <!-- Font Awesome para iconos -->    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 
 <body class="bg-light">
-    <!-- Barra de Navegación -->
     <nav class="navbar navbar-dark bg-dark">
         <div class="container-fluid">
             <span class="navbar-brand mb-0 h1">NeoData Shop</span>
-            <button class="btn btn-outline-light">🛒 Carrito (<span id="cart-count">0</span>)</button>
+            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+                🛒 Carrito (<span id="cart-count">0</span>)
+            </button>
         </div>
     </nav>
     
-    <!-- Contenedor Principal -->
     <div class="container mt-5" id="app">
         <h2>Catálogo de Productos</h2>
         <div class="row mt-4" id="catalogo">
-            <!-- Las tarjetas (Cards) se generarán aquí -->
-            <script>
-                // Datos de productos
-                const productos = [
-                    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Producto.png"},
-                    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Producto.png"},
-                    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "/Producto.png"},
-                    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "/Producto.png"}
-                ];
-                
-                // Obtener el contenedor donde se añadirán las cards
-                const contenedor = document.getElementById("catalogo");
-                let htmlCards = "";
+            
+            <% productos.forEach((producto) => { %>
+                <div class="col-12 col-md-6 col-lg-3 mb-4"> 
+                    <div class="card h-100 position-relative"> 
+                        <span class="position-absolute top-0 end-0 badge rounded-pill bg-danger m-2">
+                            <%= producto.descuento %>
+                        </span>
 
-                // Iterar sobre los productos
-                productos.forEach((producto, index) => {
-                    // Construir la plantilla HTML
-                    // Dentro de tu productos.forEach:
-                    const cardHTML = `
-                        <div class="col-12 col-md-6 col-lg-3"> <div class="card h-100 position-relative"> <span class="position-absolute top-0 end-0 badge rounded-pill bg-danger m-2">
-                                    ${producto.descuento}
-                                </span>
+                        <img src="<%= producto.imagen %>" class="card-img-top" alt="<%= producto.nombre %>">
 
-                                <img src=${producto.imagen} class="card-img-top" alt="Producto">
+                        <div class="card-body d-flex flex-column"> 
+                            <h5 class="card-title"><%= producto.nombre %></h5>
+                            <h6 class="card-subtitle mb-2 text-primary">$<%= producto.precio.toLocaleString() %></h6>
+                            
+                            <p class="card-text text-muted small">
+                                Esta es una descripción breve del producto.
+                            </p>
 
-                                <div class="card-body d-flex flex-column"> <h5 class="card-title">${producto.nombre}</h5>
-                                    <h6 class="card-subtitle mb-2 text-primary">$${producto.precio.toLocaleString()}</h6>
-                                    
-                                    <p class="card-text text-muted small">
-                                        Esta es una descripción breve del producto.
-                                    </p>
+                            <div class="mt-auto"> 
+                                <div class="input-group mb-3">
+                                    <button class="btn btn-outline-secondary btn-sm btn-restar" type="button">-</button>
+                                    <input type="text" class="form-control form-control-sm text-center input-cantidad" value="1" readonly>
+                                    <button class="btn btn-outline-secondary btn-sm btn-sumar" type="button">+</button>
+                                </div>
 
-                                    <div class="mt-auto"> <div class="input-group mb-3">
-                                            <button class="btn btn-outline-secondary btn-sm" type="button">-</button>
-                                            <input type="text" class="form-control form-control-sm text-center" value="1" readonly>
-                                            <button class="btn btn-outline-secondary btn-sm" type="button">+</button>
-                                        </div>
-
-                                        <div class="d-grid">
-                                            <button class="btn btn-primary btn-sm" onclick="seleccionarProducto('${producto.nombre}', ${producto.precio})">
-                                                Añadir al carrito
-                                            </button>
-                                        </div>
-                                    </div>
+                                <div class="d-grid">
+                                    <button class="btn btn-primary btn-sm" onclick="seleccionarProducto('<%= producto.nombre %>', <%= producto.precio %>, this)">
+                                        Añadir al carrito
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                    `;
-                    htmlCards += cardHTML;
-                });
+                    </div>
+                </div>
+            <% }); %>
 
-                // Insertar todo el HTML generado en el contenedor
-                contenedor.innerHTML = htmlCards;
-
-                // Función para manejar la selección de productos
-                let carritoCount = 0;
-                
-                function seleccionarProducto(nombre, precio) {
-                    carritoCount++;
-                    document.getElementById('cart-count').innerText = carritoCount;
-                    console.log(`Producto seleccionado: ${nombre} - $${precio.toLocaleString()}`);
-                    alert(`Has añadido ${nombre} al carrito. Total en carrito: ${carritoCount} producto(s)`);
-                }
-            </script>
         </div>
     </div>
 
+    <div class="modal fade" id="modalCarrito" tabindex="-1" aria-labelledby="modalCarritoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title" id="modalCarritoLabel">🛒 Detalle de tu Compra</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>Producto</th>
+                                <th class="text-center">Precio Unit.</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-end">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-carrito">
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-3">El carrito está vacío.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-3 px-2">
+                        <h4 class="mb-0">Total a Abonar:</h4>
+                        <h3 class="text-success mb-0 font-weight-bold">$<span id="total-abonar">0</span></h3>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger" onclick="vaciarCarrito()">Vaciar Carrito</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
+                    <button type="button" class="btn btn-success" onclick="alert('¡Gracias por tu compra!')">Iniciar Pago</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script>
+        // 1. PERSISTENCIA AL CARGAR: Intentamos recuperar datos previos de localStorage
+        const carritoGuardado = localStorage.getItem('carrito');
+        
+        // Si hay datos los convertimos de texto a Array; si no, inicializamos vacío
+        let carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+
+        // Ejecutamos el renderizado inicial por si el usuario recargó con elementos dentro
+        actualizarInterfazCarrito();
+
+        // Escuchador para botones + y - (Delegación de eventos)
+        document.getElementById('catalogo').addEventListener('click', function(event) {
+            if (event.target.classList.contains('btn-sumar')) {
+                const input = event.target.previousElementSibling;
+                let cantidad = parseInt(input.value);
+                input.value = cantidad + 1;
+            }
+
+            if (event.target.classList.contains('btn-restar')) {
+                const input = event.target.nextElementSibling;
+                let cantidad = parseInt(input.value);
+                if (cantidad > 1) { 
+                    input.value = quantity = cantidad - 1;
+                }
+            }
+        });
+
+        // Función principal al hacer clic en "Añadir al carrito"
+        function seleccionarProducto(nombre, precio, boton) {
+            const tarjetaBody = boton.closest('.card-body');
+            const inputCantidad = tarjetaBody.querySelector('.input-cantidad');
+            const cantidadSeleccionada = parseInt(inputCantidad.value);
+
+            // Verificamos si el producto ya existe en el array
+            const productoExistente = carrito.find(item => item.nombre === nombre);
+
+            if (productoExistente) {
+                productoExistente.cantidad += cantidadSeleccionada;
+            } else {
+                carrito.push({
+                    nombre: nombre,
+                    precio: precio,
+                    cantidad: cantidadSeleccionada
+                });
+            }
+
+            // 2. GUARDAR EN LOCALSTORAGE: Convertimos el array a string de texto
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+
+            // Actualizamos la pantalla
+            actualizarInterfazCarrito();
+
+            // Reseteamos el input de la tarjeta actual a 1
+            inputCantidad.value = 1;
+        }
+
+        // Función encargada de redibujar los contadores, el modal y el total a abonar
+        function actualizarInterfazCarrito() {
+            const tabla = document.getElementById('tabla-carrito');
+            const txtTotalAbonar = document.getElementById('total-abonar');
+            const txtCartCount = document.getElementById('cart-count');
+
+            if (carrito.length === 0) {
+                tabla.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">El carrito está vacío.</td></tr>`;
+                txtTotalAbonar.innerText = "0";
+                txtCartCount.innerText = "0";
+                return;
+            }
+
+            let htmlFilas = "";
+            let totalGeneral = 0;
+            let totalItems = 0;
+
+            carrito.forEach(item => {
+                const subtotal = item.precio * item.cantidad;
+                totalGeneral += subtotal;
+                totalItems += item.cantidad;
+
+                htmlFilas += `
+                    <tr>
+                        <td><strong>${item.nombre}</strong></td>
+                        <td class="text-center">$${item.precio.toLocaleString()}</td>
+                        <td class="text-center"><span class="badge bg-secondary p-2">${item.cantidad}</span></td>
+                        <td class="text-end fw-bold">$${subtotal.toLocaleString()}</td>
+                    </tr>
+                `;
+            });
+
+            tabla.innerHTML = htmlFilas;
+            txtTotalAbonar.innerText = totalGeneral.toLocaleString();
+            txtCartCount.innerText = totalItems;
+        }
+
+        // Función para limpiar el carrito por completo
+        function vaciarCarrito() {
+            if (confirm("¿Estás seguro de que querés vaciar el carrito?")) {
+                carrito = []; // Limpiamos el array en memoria
+                localStorage.removeItem('carrito'); // Eliminamos la clave del almacenamiento
+                actualizarInterfazCarrito(); // Redibujamos el modal vacío
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-class producto {
+/*class producto {
     constructor(producto_id, nombre, marca, categoria, precio, stock, garantia) {
         this.producto_id = producto_id;
         this.nombre = nombre;
@@ -82,4 +82,6 @@ class pago {
         this.medio_pago_id = medio_pago_id;
         this.medio_pago = medio_pago;
     }
-}
+}*/
+
+
