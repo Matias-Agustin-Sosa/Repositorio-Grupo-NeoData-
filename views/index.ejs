@@ -95,7 +95,7 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-danger" onclick="vaciarCarrito()">Vaciar Carrito</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
-                    <button type="button" class="btn btn-success" onclick="alert('¡Gracias por tu compra!')">Iniciar Pago</button>
+                    <button type="button" class="btn btn-success" onclick="finalizarCompra()">Iniciar Pago</button>
                 </div>
             </div>
         </div>
@@ -104,16 +104,14 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
     <script>
-        // 1. PERSISTENCIA AL CARGAR: Intentamos recuperar datos previos de localStorage
+        // PERSISTENCIA: Al iniciar, intentamos recuperar los datos previos de LocalStorage [cite: 123]
         const carritoGuardado = localStorage.getItem('carrito');
-        
-        // Si hay datos los convertimos de texto a Array; si no, inicializamos vacío
         let carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
 
-        // Ejecutamos el renderizado inicial por si el usuario recargó con elementos dentro
+        // Pintamos el estado actual guardado por si el usuario hizo F5
         actualizarInterfazCarrito();
 
-        // Escuchador para botones + y - (Delegación de eventos)
+        // Escuchador dinámico para botones de incremento y decremento
         document.getElementById('catalogo').addEventListener('click', function(event) {
             if (event.target.classList.contains('btn-sumar')) {
                 const input = event.target.previousElementSibling;
@@ -125,18 +123,17 @@
                 const input = event.target.nextElementSibling;
                 let cantidad = parseInt(input.value);
                 if (cantidad > 1) { 
-                    input.value = quantity = cantidad - 1;
+                    input.value = cantidad - 1;
                 }
             }
         });
 
-        // Función principal al hacer clic en "Añadir al carrito"
+        // Agrega un producto a la memoria del carrito
         function seleccionarProducto(nombre, precio, boton) {
             const tarjetaBody = boton.closest('.card-body');
             const inputCantidad = tarjetaBody.querySelector('.input-cantidad');
             const cantidadSeleccionada = parseInt(inputCantidad.value);
 
-            // Verificamos si el producto ya existe en el array
             const productoExistente = carrito.find(item => item.nombre === nombre);
 
             if (productoExistente) {
@@ -149,17 +146,17 @@
                 });
             }
 
-            // 2. GUARDAR EN LOCALSTORAGE: Convertimos el array a string de texto
+            // Guardamos el arreglo actualizado como texto plano en LocalStorage
             localStorage.setItem('carrito', JSON.stringify(carrito));
 
-            // Actualizamos la pantalla
+            // Renderizamos los cambios en pantalla
             actualizarInterfazCarrito();
 
-            // Reseteamos el input de la tarjeta actual a 1
+            // Reseteamos el selector numérico a 1
             inputCantidad.value = 1;
         }
 
-        // Función encargada de redibujar los contadores, el modal y el total a abonar
+        // Redibuja la tabla dentro del Modal y los contadores numéricos
         function actualizarInterfazCarrito() {
             const tabla = document.getElementById('tabla-carrito');
             const txtTotalAbonar = document.getElementById('total-abonar');
@@ -196,12 +193,46 @@
             txtCartCount.innerText = totalItems;
         }
 
-        // Función para limpiar el carrito por completo
+        // Limpia el carrito por completo
         function vaciarCarrito() {
             if (confirm("¿Estás seguro de que querés vaciar el carrito?")) {
-                carrito = []; // Limpiamos el array en memoria
-                localStorage.removeItem('carrito'); // Eliminamos la clave del almacenamiento
-                actualizarInterfazCarrito(); // Redibujamos el modal vacío
+                carrito = [];
+                localStorage.removeItem('carrito');
+                actualizarInterfazCarrito();
+            }
+        }
+
+        // INTEGRACIÓN (FETCH POST): Envía el carrito guardado hacia el Backend [cite: 121, 153]
+        async function finalizarCompra() {
+            if (carrito.length === 0) {
+                alert("El carrito está vacío."); 
+                return;
+            }
+
+            try { 
+                // Hacemos el envío asíncrono en formato JSON [cite: 77, 129, 131]
+                const respuesta = await fetch('/api/checkout', { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(carrito) // Empaquetamos los datos [cite: 132]
+                });
+
+                const resultado = await respuesta.json(); 
+                alert(resultado.mensaje); // "Ticket generado con éxito..." [cite: 134]
+
+                // Limpieza post-compra exitosa [cite: 135]
+                carrito = [];
+                localStorage.removeItem('carrito');
+                actualizarInterfazCarrito();
+
+                // Escondemos el modal usando Bootstrap
+                const modalElement = document.getElementById('modalCarrito');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) modalInstance.hide();
+
+            } catch (error) {
+                console.error("Error en la compra:", error); 
+                alert("Ocurrió un error en el servidor.");
             }
         }
     </script>
