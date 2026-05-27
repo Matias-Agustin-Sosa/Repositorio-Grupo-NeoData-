@@ -226,10 +226,10 @@
 
             try { 
                 // Hacemos el envío asíncrono en formato JSON
-                const respuesta = await fetch('/api/checkout', { 
-                    method: 'POST', 
+                const respuesta = await fetch('/api/productos', {
+                    method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carrito) // Empaquetamos los datos
+                    body: JSON.stringify(carrito)
                 });
 
                 const resultado = await respuesta.json(); 

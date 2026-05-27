@@ -1,10 +1,11 @@
-// Inicializar el proyecto: npm init -y
-// Instalar dependencias: npm install express ejs
-
 const express = require('express');
 const path = require('path');
 const app = express();
 const port = 3000;
+
+// Importamos el controlador y el router que creamos con la lógica MVC
+const productosController = require('./src/controllers/productosController');
+const productosRouter = require('./src/routes/productosRoutes');
 
 // CONFIGURACIÓN DE EJS
 app.set('view engine', 'ejs');
@@ -16,34 +17,19 @@ app.use(express.static('Image'));
 // MIDDLEWARE: Permite que Express entienda el "body" en formato JSON
 app.use(express.json());  
 
-// Base de datos simulada en memoria
-const listaProductos = [
-    { nombre: "Smartwatch", precio: 125000, stock: 12, descuento: "5%", imagen: "/Smartwatch.png"},
-    { nombre: "Celular", precio: 350000, stock: 8, descuento: "2%", imagen: "/Celular.png"},
-    { nombre: "Auriculares", precio: 45000, stock: 20, descuento: "7%", imagen: "/Auriculares.png"},
-    { nombre: "Mouse", precio: 25000, stock: 15, descuento: "3%", imagen: "/Mouse.png"}
-];
-
 // ==========================================
 // 1. RUTA PARA NAVEGAR (FRONTEND)
 // ==========================================
-// Cuando entrás a http://localhost:3000/ se renderiza la interfaz principal
+// Mantenemos tu ruta '/' igual, pero trayendo tu listaProductos desde el controlador
 app.get('/', (req, res) => {
-    res.render('index', { productos: listaProductos }); 
+    res.render('index', { productos: productosController.listaProductos }); 
 });
 
 // ==========================================
-// 2. ENDPOINT DE LA API (BACKEND - POST) 
+// 2. ENDPOINT DE LA API (VINCULACIÓN DEL ROUTER)
 // ==========================================
-// Aquí es donde el botón "Iniciar Pago" enviará el carrito usando Fetch
-app.post('/api/checkout', (req, res) => {
-    const carritoRecibido = req.body;
-    
-    console.log("¡NUEVA COMPRA RECIBIDA EN EL SERVIDOR!");
-    console.log(carritoRecibido);
-    
-    res.json({ mensaje: "Ticket generado con éxito, gracias por su compra" });
-});
+// Siguiendo el estándar RESTful, todo lo que esté en productosRouter colgará de /api/productos
+app.use('/api/productos', productosRouter);
 
 // INICIAR SERVIDOR
 app.listen(port, () => {
