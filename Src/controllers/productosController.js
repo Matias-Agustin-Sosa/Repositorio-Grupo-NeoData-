@@ -7,26 +7,26 @@ let listaProductos = [
 ];
 
 const productosController = {
-    // 1. GET -> Trae la colección completa (Catálogo) [cite: 221, 276]
+    // 1. GET -> Trae la colección completa (Catálogo) 
     getAll: (req, res) => {
-        res.json(listaProductos); // [cite: 289]
+        res.json(listaProductos); // 
     },
 
-    // 2. GET -> Busca un producto específico por su ID [cite: 221, 276]
+    // 2. GET -> Busca un producto específico por su ID 
     getById: (req, res) => {
-        const idBuscado = parseInt(req.params.id); // Capturamos el :id de la URL [cite: 299, 337]
+        const idBuscado = parseInt(req.params.id); // Capturamos el :id de la URL
         const encontrado = listaProductos.find(p => p.id === idBuscado); // 
         
         if (encontrado) {
-            res.json(encontrado); // [cite: 301]
+            res.json(encontrado); 
         } else {
-            res.status(404).json({ error: "Producto no encontrado" }); // [cite: 301]
+            res.status(404).json({ error: "Producto no encontrado" }); 
         }
     },
 
-    // 3. POST -> Crea un nuevo producto (o procesa el checkout) [cite: 221, 276]
+    // 3. POST -> Crea un nuevo producto (o procesa el checkout) 
     create: (req, res) => {
-        const nuevoProducto = req.body; // Capturamos los datos que vienen en el body [cite: 303]
+        const nuevoProducto = req.body; // Capturamos los datos que vienen en el body
         
         // Si el body es el carrito del checkout (un arreglo), procesamos la compra como antes
         if (Array.isArray(nuevoProducto)) {
@@ -35,39 +35,39 @@ const productosController = {
             return res.json({ mensaje: "Ticket generado con éxito, gracias por su compra" });
         }
         
-        // Si no es un arreglo, asumimos que el Admin está agregando un producto al catálogo [cite: 221]
+        // Si no es un arreglo, asumimos que el Admin está agregando un producto al catálogo
         // Le asignamos un ID dinámico sumando 1 al último ID existente
         nuevoProducto.id = listaProductos.length > 0 ? listaProductos[listaProductos.length - 1].id + 1 : 1;
-        listaProductos.push(nuevoProducto); // Lo agregamos al array [cite: 166, 304]
+        listaProductos.push(nuevoProducto); // Lo agregamos al array
         
-        res.status(201).json({ mensaje: "Creado con éxito", producto: nuevoProducto }); // [cite: 305]
+        res.status(201).json({ mensaje: "Creado con éxito", producto: nuevoProducto });
     },
 
-    // 4. PUT -> Busca un producto por ID y actualiza sus datos [cite: 167, 221, 277]
+    // 4. PUT -> Busca un producto por ID y actualiza sus datos
     update: (req, res) => {
-        const idBuscado = parseInt(req.params.id); // 
+        const idBuscado = parseInt(req.params.id);
         const datosActualizados = req.body;
         const indice = listaProductos.findIndex(p => p.id === idBuscado);
 
         if (indice !== -1) {
             // Reemplazamos los datos viejos manteniendo el mismo ID
             listaProductos[indice] = { ...listaProductos[indice], ...datosActualizados };
-            res.json({ mensaje: "Actualizado con éxito", producto: listaProductos[indice] }); // [cite: 310]
+            res.json({ mensaje: "Actualizado con éxito", producto: listaProductos[indice] });
         } else {
             res.status(404).json({ error: "Producto no encontrado para actualizar" });
         }
     },
 
-    // 5. DELETE -> Busca un producto por ID y lo elimina del arreglo [cite: 168, 229, 230, 277]
+    // 5. DELETE -> Busca un producto por ID y lo elimina del arreglo
     remove: (req, res) => {
-        const idBuscado = parseInt(req.params.id); // 
+        const idBuscado = parseInt(req.params.id);
         const longitudInicial = listaProductos.length;
         
         // Filtramos el arreglo para conservar todos menos el que queremos borrar 
         listaProductos = listaProductos.filter(p => p.id !== idBuscado);
 
         if (listaProductos.length < longitudInicial) {
-            res.json({ mensaje: "Eliminado con éxito" }); // [cite: 313]
+            res.json({ mensaje: "Eliminado con éxito" });
         } else {
             res.status(404).json({ error: "Producto no encontrado para eliminar" });
         }
