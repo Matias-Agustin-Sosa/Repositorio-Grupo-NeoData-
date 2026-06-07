@@ -35,12 +35,6 @@ A continuación, se pueden visualizar dichos diagramas:
 <img src="Imagenes_Readme\DER.png" alt="Equipo de Desarrollo" width="650">
 </p>
 
-## Diagrama Lógico Relacional (DLR)
-
-<p align="center">
-<img src="Imagenes_Readme\DLR.png" alt="Equipo de Desarrollo" width="650">
-</p>
-
 # Tecnologías
 
  <p align="center">

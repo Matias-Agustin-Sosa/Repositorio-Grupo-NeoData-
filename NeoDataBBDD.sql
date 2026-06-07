@@ -85,6 +85,8 @@ CREATE TABLE `producto` (
   `Precio` decimal(60,0) NOT NULL,
   `Stock` int(10) NOT NULL,
   `Garanty` date NOT NULL,
+  `Descuento` int(11) NOT NULL,
+  `Ruta_Imagen` varchar(80) NOT NULL,
   PRIMARY KEY (`ID_Producto`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -105,3 +107,19 @@ ALTER TABLE `detalle`
 ALTER TABLE `factura`
   ADD CONSTRAINT `factura_ibfk_1` FOREIGN KEY (`ID_Cliente`) REFERENCES `cliente` (`ID_Cliente`),
   ADD CONSTRAINT `factura_ibfk_2` FOREIGN KEY (`ID_MedioPago`) REFERENCES `medio_pago` (`ID_MedioPago`);
+
+--
+-- Agregamos datos
+--
+
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
+VALUES ('Smartwatch', 'Xio', 'Accesorio', 50000, 3, '2026-07-07', 3, 'Smartwatch.png');
+
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
+VALUES ('Mouse Gamer', 'Red Dragon', 'Pc', 30000, 2, '2026-08-07', 4, 'Mouse.png');
+
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
+VALUES ('Celular A34', 'Samsung', 'Celular', 450000, 13, '2027-04-04', 10, 'Celular.png');
+
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
+VALUES ('Auriculares', 'JBL', 'Accesorio', 10000, 6, '2026-06-04', 1, 'Auriculares.png');
