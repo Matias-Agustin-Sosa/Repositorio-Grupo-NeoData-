@@ -3,253 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoData Shop</title>
-    
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
+    <title>NeoData Shop - Catálogo y Carrito Persistente</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         .card-dinamica {
-            /* Controla que la animación tarde 0.3 segundos y sea suave */
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
+            transition: transform 0.2s;
         }
-
-        /* Cuando el mouse se posiciona sobre la tarjeta: */
         .card-dinamica:hover {
-            transform: translateY(-5px); /* Eleva la tarjeta 5 píxeles */
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15) !important; /* Genera una sombra intensa */
+            transform: scale(1.02);
         }
     </style>
-    
 </head>
-
 <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark">
-        <div class="container-fluid">
-            <span class="navbar-brand mb-0 h1">NeoData Shop</span>
-            <button class="btn btn-outline-light" data-bs-toggle="modal" data-bs-target="#modalCarrito">
-                🛒 Carrito (<span id="cart-count">0</span>)
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="#">NeoData Shop</a>
+            
+            <button class="btn btn-outline-light d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+                <i class="bi bi-cart3 fs-5"></i>
+                <span>Ver Carrito</span>
+                <span class="badge bg-danger" id="contador-carrito">0</span>
             </button>
         </div>
     </nav>
-    
-    <div class="container mt-5" id="app">
-        <h2>Catálogo de Productos</h2>
-        <div class="row mt-4" id="catalogo">
-            
-            <% productos.forEach((producto) => { %>
-                <div class="col-12 col-md-6 col-lg-3 mb-4"> 
-                    <div class="card h-100 position-relative shadow-sm border-light card-dinamica"> 
-                        <span class="position-absolute top-0 end-0 badge rounded-pill bg-danger m-2">
-                            <%= producto.descuento %>
-                        </span>
 
-                        <img src="<%= producto.imagen %>" class="card-img-top" alt="<%= producto.nombre %>">
-
-                        <div class="card-body d-flex flex-column"> 
-                            <h5 class="card-title"><%= producto.nombre %></h5>
-                            <h6 class="card-subtitle mb-2 text-primary">$<%= producto.precio.toLocaleString() %></h6>
-                            
-                            <p class="card-text text-muted small">
-                                Esta es una descripción breve del producto.
-                            </p>
-
-                            <div class="mt-auto"> 
-                                <div class="input-group mb-3">
-                                    <button class="btn btn-outline-secondary btn-sm btn-restar" type="button">-</button>
-                                    <input type="text" class="form-control form-control-sm text-center input-cantidad" value="1" readonly>
-                                    <button class="btn btn-outline-secondary btn-sm btn-sumar" type="button">+</button>
-                                </div>
-
-                                <div class="d-grid">
-                                    <button class="btn btn-primary btn-sm" onclick="seleccionarProducto('<%= producto.nombre %>', <%= producto.precio %>, this)">
-                                        Añadir al carrito
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <% }); %>
-
-        </div>
+    <div class="container mt-5">
+        <h2 class="text-center mb-4 fw-bold text-secondary">Nuestro Catálogo</h2>
+        
+        <div class="row mt-4" id="catalogo-contenedor"></div>
     </div>
 
     <div class="modal fade" id="modalCarrito" tabindex="-1" aria-labelledby="modalCarritoLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="modalCarritoLabel">🛒 Detalle de tu Compra</h5>
+                    <h5 class="modal-title fw-bold" id="modalCarritoLabel"><i class="bi bi-cart3 me-2"></i>Tu Carrito de Compras</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <table class="table table-hover align-middle">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th class="text-center">Precio Unit.</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tabla-carrito">
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-3">El carrito está vacío.</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div id="lista-carrito-vacia" class="text-center text-muted py-4">
+                        <i class="bi bi-basket fs-1"></i>
+                        <p class="mt-2">El carrito está vacío.</p>
+                    </div>
                     
-                    <hr>
+                    <ul class="list-group d-none" id="lista-carrito-productos">
+                        </ul>
                     
-                    <div class="d-flex justify-content-between align-items-center mt-3 px-2">
-                        <h4 class="mb-0">Total a Abonar:</h4>
-                        <h3 class="text-success mb-0 font-weight-bold">$<span id="total-abonar">0</span></h3>
+                    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top fw-bold fs-5">
+                        <span>Total:</span>
+                        <span class="text-primary" id="total-carrito">$0</span>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-danger" onclick="vaciarCarrito()">Vaciar Carrito</button>
+                    <button type="button" class="btn btn-danger me-auto" id="btn-vaciar" onclick="vaciarCarrito()" disabled>
+                        <i class="bi bi-trash3 me-1"></i>Vaciar Carrito
+                    </button>
+                    
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
-                    <button type="button" class="btn btn-success" onclick="finalizarCompra()">Iniciar Pago</button>
+                    <button type="button" class="btn btn-success fw-bold" id="btn-pagar" onclick="enviarCheckout()" disabled>
+                        <i class="bi bi-credit-card me-2"></i>Iniciar Pago
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
     <script>
-        // PERSISTENCIA: Al iniciar, intentamos recuperar los datos previos de LocalStorage
-        const carritoGuardado = localStorage.getItem('carrito');
-        let carrito = carritoGuardado ? JSON.parse(carritoGuardado) : [];
+        const contenedor = document.getElementById('catalogo-contenedor');
+        
+        // 🆕 INTENTO LEER EL CARRITO DESDE LOCALSTORAGE AL CARGAR LA PÁGINA
+        // Si no hay nada guardado, se inicia como un arreglo vacío []
+        let carrito = JSON.parse(localStorage.getItem('carrito')) || []; 
 
-        // Pintamos el estado actual guardado por si el usuario hizo F5
-        actualizarInterfazCarrito();
+        // Función asíncrona para traer los productos de la API de MySQL
+        async function cargarProductos() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/productos');
+                const productos = await respuesta.json();
 
-        // Escuchador dinámico para botones de incremento y decremento
-        document.getElementById('catalogo').addEventListener('click', function(event) {
-            if (event.target.classList.contains('btn-sumar')) {
-                const input = event.target.previousElementSibling;
-                let cantidad = parseInt(input.value);
-                input.value = cantidad + 1;
-            }
+                contenedor.innerHTML = "";
 
-            if (event.target.classList.contains('btn-restar')) {
-                const input = event.target.nextElementSibling;
-                let cantidad = parseInt(input.value);
-                if (cantidad > 1) { 
-                    input.value = cantidad - 1;
+                if (productos.length === 0) {
+                    contenedor.innerHTML = `<div class="col-12 text-center text-muted"><h3>No hay productos disponibles de momento.</h3></div>`;
+                    return;
                 }
-            }
-        });
 
-        // Agrega un producto a la memoria del carrito
-        function seleccionarProducto(nombre, precio, boton) {
-            const tarjetaBody = boton.closest('.card-body');
-            const inputCantidad = tarjetaBody.querySelector('.input-cantidad');
-            const cantidadSeleccionada = parseInt(inputCantidad.value);
+                productos.forEach(producto => {
+                    const sinStock = producto.Stock <= 0;
 
-            const productoExistente = carrito.find(item => item.nombre === nombre);
+                    const cardHTML = `
+                        <div class="col-12 col-md-6 col-lg-3 mb-4">
+                            <div class="card h-100 shadow-sm card-dinamica ${sinStock ? 'opacity-75' : ''}">
+                                <img src="${producto.Ruta_Imagen || '/default.png'}" class="card-img-top p-2" alt="${producto.Nombre}" style="height: 200px; object-fit: contain;">
+                                
+                                <div class="card-body d-flex flex-column">
+                                    <h5 class="card-title fw-bold">${producto.Nombre}</h5>
+                                    
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <h6 class="text-primary fw-bold fs-5 m-0">$${Number(producto.Precio).toLocaleString()}</h6>
+                                        ${producto.Descuento > 0 ? `<span class="badge bg-danger small">${producto.Descuento}% OFF</span>` : ''}
+                                    </div>
+                                    
+                                    <p class="card-text text-muted small mb-3">
+                                        <strong>Marca:</strong> ${producto.Marca || 'Genérica'}
+                                    </p>
 
-            if (productoExistente) {
-                productoExistente.cantidad += cantidadSeleccionada;
-            } else {
-                carrito.push({
-                    nombre: nombre,
-                    precio: precio,
-                    cantidad: cantidadSeleccionada
+                                    <div class="mt-auto">
+                                        <p class="small fw-bold ${sinStock ? 'text-danger' : 'text-success'} mb-2">
+                                            ${sinStock ? 'Agotado' : `Stock: ${producto.Stock} u.`}
+                                        </p>
+
+                                        <div class="mb-3 d-flex align-items-center gap-2">
+                                            <label for="cant-${producto.ID_Producto}" class="small text-secondary text-nowrap">Cant:</label>
+                                            <input type="number" 
+                                                id="cant-${producto.ID_Producto}" 
+                                                class="form-control form-control-sm text-center" 
+                                                value="1" 
+                                                min="1" 
+                                                max="${producto.Stock}" 
+                                                ${sinStock ? 'disabled' : ''}
+                                                style="width: 70px;">
+                                        </div>
+
+                                        <div class="d-grid">
+                                            <button class="btn btn-dark btn-sm" 
+                                                ${sinStock ? 'disabled' : ''} 
+                                                onclick="procesarSeleccion(${producto.ID_Producto}, '${producto.Nombre}', ${producto.Precio})">
+                                                ${sinStock ? 'Sin Stock' : 'Añadir al carrito'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    contenedor.innerHTML += cardHTML;
                 });
+
+                // 🆕 IMPORTANTE: Una vez que se dibuja el catálogo, refrescamos la interfaz 
+                // del carrito por si el usuario ya tenía productos guardados de la sesión anterior
+                actualizarInterfazCarrito();
+
+            } catch (error) {
+                console.error("Error al conectar con la API:", error);
+                contenedor.innerHTML = `<div class="col-12 text-center"><div class="alert alert-danger d-inline-block">Error al conectar con el servidor de NeoData Shop.</div></div>`;
             }
-
-            // Guardamos el arreglo actualizado como texto plano en LocalStorage
-            localStorage.setItem('carrito', JSON.stringify(carrito));
-
-            // Renderizamos los cambios en pantalla
-            actualizarInterfazCarrito();
-
-            // Reseteamos el selector numérico a 1
-            inputCantidad.value = 1;
         }
 
-        // Redibuja la tabla dentro del Modal y los contadores numéricos
-        function actualizarInterfazCarrito() {
-            const tabla = document.getElementById('tabla-carrito');
-            const txtTotalAbonar = document.getElementById('total-abonar');
-            const txtCartCount = document.getElementById('cart-count');
-
-            if (carrito.length === 0) {
-                tabla.innerHTML = `<tr><td colspan="4" class="text-center text-muted py-3">El carrito está vacío.</td></tr>`;
-                txtTotalAbonar.innerText = "0";
-                txtCartCount.innerText = "0";
+        // Procesa la cantidad escrita o seleccionada en la card
+        function procesarSeleccion(id, nombre, precio) {
+            const inputCantidad = document.getElementById(`cant-${id}`);
+            const cantidadSeleccionada = parseInt(inputCantidad.value) || 1;
+            const maxStock = parseInt(inputCantidad.getAttribute('max'));
+            
+            if (cantidadSeleccionada > maxStock) {
+                alert(`Lo sentimos, solo quedan ${maxStock} unidades disponibles.`);
+                inputCantidad.value = maxStock;
+                return;
+            }
+            if (cantidadSeleccionada < 1) {
+                alert("La cantidad mínima a agregar es 1 unidad.");
+                inputCantidad.value = 1;
                 return;
             }
 
-            let htmlFilas = "";
-            let totalGeneral = 0;
-            let totalItems = 0;
+            agregarAlCarrito(id, nombre, precio, cantidadSeleccionada);
+            inputCantidad.value = 1; 
+        }
+
+        // Registra los productos en el arreglo global
+        function agregarAlCarrito(id, nombre, precio, cantidad) {
+            const existe = carrito.find(item => item.id === id);
+            if (existe) {
+                existe.cantidad += cantidad;
+            } else {
+                carrito.push({ id, nombre, precio, cantidad });
+            }
+            
+            // 🆕 GUARDAMOS EN EL ALMACENAMIENTO LOCAL EN CADA CAMBIO
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            
+            actualizarInterfazCarrito();
+        }
+
+        // Vacía por completo el carrito
+        function vaciarCarrito() {
+            if (confirm("¿Estás seguro de que querés vaciar por completo el carrito?")) {
+                carrito = [];
+                
+                // 🆕 ELIMINAMOS TAMBIÉN EL REGISTRO DE LA MEMORIA LOCAL
+                localStorage.removeItem('carrito');
+                
+                actualizarInterfazCarrito();
+            }
+        }
+
+        // Redibuja los contadores y las listas del modal
+        function actualizarInterfazCarrito() {
+            const contador = document.getElementById('contador-carrito');
+            const listaProductos = document.getElementById('lista-carrito-productos');
+            const vistaVacia = document.getElementById('lista-carrito-vacia');
+            const totalTexto = document.getElementById('total-carrito');
+            const btnPagar = document.getElementById('btn-pagar');
+            const btnVaciar = document.getElementById('btn-vaciar');
+
+            const totalUnidades = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+            contador.innerText = totalUnidades;
+
+            if (carrito.length === 0) {
+                vistaVacia.classList.remove('d-none');
+                listaProductos.classList.add('d-none');
+                btnPagar.setAttribute('disabled', 'true');
+                btnVaciar.setAttribute('disabled', 'true');
+                totalTexto.innerText = "$0";
+                return;
+            }
+
+            vistaVacia.classList.add('d-none');
+            listaProductos.classList.remove('d-none');
+            btnPagar.removeAttribute('disabled');
+            btnVaciar.removeAttribute('disabled');
+
+            listaProductos.innerHTML = "";
+            let dineroTotal = 0;
 
             carrito.forEach(item => {
                 const subtotal = item.precio * item.cantidad;
-                totalGeneral += subtotal;
-                totalItems += item.cantidad;
+                dineroTotal += subtotal;
 
-                htmlFilas += `
-                    <tr>
-                        <td><strong>${item.nombre}</strong></td>
-                        <td class="text-center">$${item.precio.toLocaleString()}</td>
-                        <td class="text-center"><span class="badge bg-secondary p-2">${item.cantidad}</span></td>
-                        <td class="text-end fw-bold">$${subtotal.toLocaleString()}</td>
-                    </tr>
+                listaProductos.innerHTML += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-bold">${item.nombre}</span>
+                            <br>
+                            <small class="text-muted">$${item.precio.toLocaleString()} x ${item.cantidad} u.</small>
+                        </div>
+                        <span class="badge bg-dark rounded-pill fs-6">$${subtotal.toLocaleString()}</span>
+                    </li>
                 `;
             });
 
-            tabla.innerHTML = htmlFilas;
-            txtTotalAbonar.innerText = totalGeneral.toLocaleString();
-            txtCartCount.innerText = totalItems;
+            totalTexto.innerText = `$${dineroTotal.toLocaleString()}`;
         }
 
-        // Limpia el carrito por completo
-        function vaciarCarrito() {
-            if (confirm("¿Estás seguro de que querés vaciar el carrito?")) {
-                carrito = [];
-                localStorage.removeItem('carrito');
-                actualizarInterfazCarrito();
-            }
-        }
-
-        // INTEGRACIÓN (FETCH POST): Envía el carrito guardado hacia el Backend
-        async function finalizarCompra() {
-            if (carrito.length === 0) {
-                alert("El carrito está vacío."); 
-                return;
-            }
-
-            try { 
-                // Hacemos el envío asíncrono en formato JSON
-                const respuesta = await fetch('/api/productos', {
+        // Envía la orden mediante un POST JSON directo al Endpoint del servidor
+        async function enviarCheckout() {
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/productos', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carrito)
+                    body: JSON.stringify(carrito) 
                 });
-
-                const resultado = await respuesta.json(); 
-                alert(resultado.mensaje); // "Ticket generado con éxito..."
-
-                // Limpieza post-compra exitosa
+                
+                const resultado = await respuesta.json();
+                alert(`Servidor NeoData Shop responde:\n${resultado.mensaje}`);
+                
+                // 🆕 COMPRA EXITOSA: Limpiamos el arreglo y destruimos el localStorage
                 carrito = [];
                 localStorage.removeItem('carrito');
+                
                 actualizarInterfazCarrito();
-
-                // Escondemos el modal usando Bootstrap
+                
                 const modalElement = document.getElementById('modalCarrito');
                 const modalInstance = bootstrap.Modal.getInstance(modalElement);
-                if (modalInstance) modalInstance.hide();
+                modalInstance.hide();
 
             } catch (error) {
-                console.error("Error en la compra:", error); 
-                alert("Ocurrió un error en el servidor.");
+                alert("Ocurrió un error de conexión al intentar enviar el checkout al servidor.");
             }
         }
+
+        // Dispara la carga automática del catálogo al iniciar la pantalla
+        document.addEventListener('DOMContentLoaded', cargarProductos);
     </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -1,54 +1,58 @@
-require('dotenv').config(); // Cargamos las variables de entorno al inicio de todo
+// npm install cors
+require('dotenv').config(); // Carga la caja fuerte de las variables de entorno (.env) 
 const express = require('express');
 const path = require('path');
+const cors = require('cors');
+const sequelize = require('./src/config/database'); // Conexión de Sequelize a MySQL
+const productosRouter = require('./src/routes/productosRoutes'); // Router de la API 
+
 const app = express();
 
-const sequelize = require('./src/config/database'); // Conexión a MySQL
-const productosRouter = require('./src/routes/productosRoutes');
+// ==========================================
+//           MIDDLEWARES GLOBAL
+// ==========================================
+app.use(cors()); // 🆕 Permite que tu JavaScript del Frontend haga fetch a este servidor sin bloqueos de seguridad
+app.use(express.json()); // Traductor para que el servidor entienda peticiones JSON (como el checkout) 
+app.use(express.static(path.join(__dirname, 'public'))); // Servidor de archivos estáticos (CSS, JS, imágenes)
+app.use(express.static('Image'));
 
-// Configuraciones del Servidor
+// Configuración del motor de plantillas para renderizar la página inicial
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
-app.use(express.static('Image'));
-app.use(express.json()); // Middleware traductor de JSON
 
-// Buscá la sección de la ruta raíz '/' en tu server.js y reemplazala por esta:
-app.get('/', async (req, res) => {
-    try {
-        const Producto = require('./src/models/Producto');
-        const listaDesdeDB = await Producto.findAll(); // Equivale a SELECT * FROM producto
-        
-        // Mapeamos los datos de MySQL directo a las propiedades que requiere tu Frontend
-        const listaProductos = listaDesdeDB.map(p => {
-            return {
-                nombre: p.Nombre,
-                precio: p.Precio,
-                stock: p.Stock,
-                descuento: p.Descuento ? `${p.Descuento}% OFF` : "0% OFF", 
-                imagen: p.Ruta_Imagen ? p.Ruta_Imagen : "/default.png" 
-            };
-        });
+// ==========================================
+//                 RUTAS
+// ==========================================
 
-        res.render('index', { productos: listaProductos }); 
-    } catch (error) {
-        console.error("Error al renderizar el catálogo:", error);
-        res.status(500).send("Error al cargar el catálogo desde neodatashop.");
-    }
+/**
+ * RUTA FRONTEND: Carga la estructura básica de la página.
+ * Siguiendo la Guía 8, esta ruta ya no consulta la base de datos aquí adentro,
+ * simplemente envía el archivo HTML/EJS vacío y deja que el JS del navegador haga el trabajo.
+ */
+app.get('/', (req, res) => {
+    res.render('index'); 
 });
 
-// VINCULACIÓN DE RUTAS DE LA API
-app.use('/api/productos', productosRouter);
+/**
+ * RUTAS DE LA API (ENDPOINT RESTful):
+ * Aquí cuelgan tus métodos GET, POST, PUT y DELETE en /api/productos.
+ * El controlador asociado es el encargado de interactuar de forma asíncrona con tu tabla 'producto'.
+ */
+app.use('/api/productos', productosRouter); // 
 
-// SINCRONIZACIÓN CON MYSQL Y ENCENDIDO DEL MOTOR
-const PORT = process.env.PORT || 3000;
+// ==========================================
+//      SINCRONIZACIÓN Y ARRANQUE (MYSQL)
+// ==========================================
+const PORT = process.env.PORT || 3000; // Lee el puerto del .env o usa el 3000 por defecto 
 
-sequelize.sync({ force: false }) // 'force: false' evita borrar y recrear las tablas cada vez que guardás cambios en el código
+// Sincroniza los modelos con las tablas de MySQL Workbench
+sequelize.sync({ force: false }) // force: false evita que se borren tus productos reales al reiniciar 
     .then(() => {
-        console.log('🔌 Base de datos MySQL conectada y sincronizada con éxito');
+        console.log('🔌 Base de datos MySQL (neodatashop) conectada y sincronizada'); // 
         app.listen(PORT, () => {
-            console.log(`🚀 Servidor NeoData Shop corriendo en: http://localhost:${PORT}`);
+            console.log(`🚀 Servidor de NeoData Shop corriendo en: http://localhost:${PORT}`); // 
         });
     })
     .catch((err) => {
-        console.error('❌ Error crítico de conexión a MySQL:', err);
+        console.error('❌ Error crítico de conexión a MySQL:', err); // 
     });

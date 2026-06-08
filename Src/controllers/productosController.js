@@ -3,14 +3,13 @@ const Producto = require('../models/Producto');
 const productosController = {
     // 1. GET -> Trae todos los productos de neodatashop
     getAll: async (req, res) => {
-        try {
-            const productos = await Producto.findAll(); // SELECT * FROM producto
-            res.json(productos);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ error: "Error al consultar la tabla producto en MySQL" });
-        }
-    },
+    try {
+        const productos = await Producto.findAll(); 
+        res.json(productos);
+    } catch (error) {
+        res.status(500).json({ error: "Error al consultar la base de datos" });
+    }
+},
 
     // 2. GET -> Busca por la Primary Key específica (ID_Producto)
     getById: async (req, res) => {

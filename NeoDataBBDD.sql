@@ -123,3 +123,9 @@ VALUES ('Celular A34', 'Samsung', 'Celular', 450000, 13, '2027-04-04', 10, 'Celu
 
 INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
 VALUES ('Auriculares', 'JBL', 'Accesorio', 10000, 6, '2026-06-04', 1, 'Auriculares.png');
+
+INSERT INTO `medio_pago` (`Modalidad`) 
+VALUES ('Devito');
+
+INSERT INTO `medio_pago` (`Modalidad`) 
+VALUES ('Credito');
