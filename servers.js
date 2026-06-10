@@ -11,7 +11,7 @@ const app = express();
 // ==========================================
 //           MIDDLEWARES GLOBAL
 // ==========================================
-app.use(cors()); // 🆕 Permite que tu JavaScript del Frontend haga fetch a este servidor sin bloqueos de seguridad
+app.use(cors()); // Permite que tu JavaScript del Frontend haga fetch a este servidor sin bloqueos de seguridad
 app.use(express.json()); // Traductor para que el servidor entienda peticiones JSON (como el checkout) 
 app.use(express.static(path.join(__dirname, 'public'))); // Servidor de archivos estáticos (CSS, JS, imágenes)
 app.use(express.static('Image'));
