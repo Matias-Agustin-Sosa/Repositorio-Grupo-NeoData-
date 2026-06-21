@@ -44,6 +44,14 @@ const Producto = sequelize.define('Producto', {
         type: DataTypes.STRING(80),
         allowNull: true,
         field: 'Ruta_Imagen'
+    },
+    validFrom: {
+        type: DataTypes.DATE,
+        allowNull: false
+    },
+    validTo: {
+        type: DataTypes.DATE,
+        allowNull: false
     }
 }, {
     tableName: 'producto', 

@@ -19,18 +19,18 @@ USE neodatashop;
 -- --------------------------------------------------------
 
 --
--- Estructura de tabla para la tabla `cliente`
+-- Estructura de tabla para la tabla `usuario`
 --
 
-CREATE TABLE `cliente` (
-  `ID_Cliente` int(11) NOT NULL AUTO_INCREMENT,
+CREATE TABLE `usuario` (
+  `ID_usuario` int(11) NOT NULL AUTO_INCREMENT,
   `Nombre` varchar(30) NOT NULL,
   `Apellido` varchar(30) NOT NULL,
   `DNI` varchar(15) NOT NULL,
   `Telefono` varchar(50) NOT NULL,
   `Email` varchar(100) NOT NULL,
-  `Habilitado` tinyint(1) NOT NULL,
-  PRIMARY KEY (`ID_Cliente`)
+  `Administrador` int(1) NOT NULL,
+  PRIMARY KEY (`ID_usuario`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -54,7 +54,7 @@ CREATE TABLE `detalle` (
 CREATE TABLE `factura` (
   `ID_Factura` int(11) NOT NULL AUTO_INCREMENT,
   `Fecha` date NOT NULL,
-  `ID_Cliente` int(11) NOT NULL,
+  `ID_usuario` int(11) NOT NULL,
   `ID_MedioPago` int(11) NOT NULL,
   PRIMARY KEY (`ID_Factura`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -105,7 +105,7 @@ ALTER TABLE `detalle`
 -- Filtros para la tabla `factura`
 --
 ALTER TABLE `factura`
-  ADD CONSTRAINT `factura_ibfk_1` FOREIGN KEY (`ID_Cliente`) REFERENCES `cliente` (`ID_Cliente`),
+  ADD CONSTRAINT `factura_ibfk_1` FOREIGN KEY (`ID_usuario`) REFERENCES `usuario` (`ID_usuario`),
   ADD CONSTRAINT `factura_ibfk_2` FOREIGN KEY (`ID_MedioPago`) REFERENCES `medio_pago` (`ID_MedioPago`);
 
 --
@@ -113,19 +113,25 @@ ALTER TABLE `factura`
 --
 
 INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Smartwatch', 'Xio', 'Accesorio', 50000, 3, '2026-07-07', 3, 'Smartwatch.png');
+VALUES ('Smartwatch', 'Xio', 'Componentes', 50000, 3, '2026-07-07', 3, 'Smartwatch.png');
 
 INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Mouse Gamer', 'Red Dragon', 'Pc', 30000, 2, '2026-08-07', 4, 'Mouse.png');
+VALUES ('Mouse Gamer', 'Red Dragon', 'Periféricos', 30000, 2, '2026-08-07', 4, 'Mouse.png');
 
 INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Celular A34', 'Samsung', 'Celular', 450000, 13, '2027-04-04', 10, 'Celular.png');
+VALUES ('Celular A34', 'Samsung', 'Celulares', 450000, 13, '2027-04-04', 10, 'Celular.png');
 
 INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Auriculares', 'JBL', 'Accesorio', 10000, 6, '2026-06-04', 1, 'Auriculares.png');
+VALUES ('Auriculares', 'JBL', 'Periféricos', 10000, 6, '2026-06-04', 1, 'Auriculares.png');
 
 INSERT INTO `medio_pago` (`Modalidad`) 
 VALUES ('Devito');
 
 INSERT INTO `medio_pago` (`Modalidad`) 
 VALUES ('Credito');
+
+ALTER TABLE producto ADD COLUMN validFrom DATETIME DEFAULT '2026-01-01 00:00:00';
+ALTER TABLE producto ADD COLUMN validTo DATETIME DEFAULT '2027-01-01 00:00:00';
+
+INSERT INTO `neodatashop`.`usuario` (`Nombre`, `Apellido`, `DNI`, `Telefono`, `Email`, `Administrador`) 
+VALUES ('Matias', 'Sosa', '45252372', '2975399714', 'matias.agustin.sosa@gmail.com', '1');
