@@ -1,41 +1,75 @@
+// src/controllers/authController.js
 const jwt = require('jsonwebtoken');
-// Nota: Aquí importarías tu modelo de Usuario según tu DER
 const Usuario = require('../models/Usuario'); 
 
 const authController = {
+    // ==========================================
+    // 1. LOGIN DE USUARIOS
+    // ==========================================
     login: async (req, res) => {
         const { email, password } = req.body;
-
         try {
-            // Buscamos el usuario en tu base de datos neodatashop por su Email
+            // Buscamos el usuario por Email
             const usuario = await Usuario.findOne({ where: { Email: email } });
-
-            // Validación básica de credenciales (en texto plano por ahora, como pide la guía)
+            
             if (!usuario || usuario.Password !== password) {
-                return res.status(401).json({ error: "Credenciales inválidas." });
+                return res.status(401).json({ error: "Credenciales incorrectas." });
             }
 
-            // Creamos el Payload del JWT incluyendo tu flag modificada 'administrador'
-            const userPayload = {
-                id: usuario.ID_Usuario,
-                email: usuario.Email,
-                esAdmin: usuario.administrador // 1 o 0
-            };
+            // Si todo está bien, generamos el token (Modificá los parámetros según tu Guía 10)
+            const token = jwt.sign(
+                { id: usuario.ID_Usuario, administrador: usuario.administrador }, 
+                process.env.JWT_SECRET || 'secret_key_temporal', 
+                { expiresIn: '1h' }
+            );
 
-            // Firmamos el token con una clave secreta (usá tu .env en producción)
-            const token = jwt.sign(userPayload, 'SECRET_KEY_NEODATA', { expiresIn: '1h' });
-
-            // Devolvemos el token al cliente
-            return res.json({ 
-                mensaje: "Autenticación exitosa", 
-                token 
+            return res.status(200).json({ 
+                mensaje: "Login exitoso", 
+                token, 
+                usuario: { nombre: usuario.Nombre, administrador: usuario.administrador } 
             });
 
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: "Error en el servidor durante el login." });
+            console.error("❌ Error en Login:", error);
+            return res.status(500).json({ error: "Error en el servidor al intentar loguearse." });
+        }
+    },
+
+    // ==========================================
+    // 2. REGISTRO DE USUARIOS (Con DNI incluido)
+    // ==========================================
+    register: async (req, res) => {
+        try {
+            // Extraemos los campos desde el req.body que manda el fetch
+            const { nombre, apellido, dni, email, password } = req.body;
+
+            // Verificamos si el email ya existe en la BD
+            const existe = await Usuario.findOne({ where: { Email: email } });
+            if (existe) {
+                return res.status(400).json({ error: "El correo electrónico ya está registrado." });
+            }
+
+            // Creamos el usuario en MySQL usando Sequelize
+            const nuevoUsuario = await Usuario.create({
+                Nombre: nombre,
+                Apellido: apellido,
+                DNI: dni,           // 💡 Ahora sí se lo pasamos al método que el router va a llamar
+                Email: email,
+                Password: password, // Texto plano (Clase 10)
+                administrador: 0    // Cliente por defecto
+            });
+
+            return res.status(201).json({ 
+                mensaje: "Usuario registrado con éxito.", 
+                id: nuevoUsuario.ID_Usuario 
+            });
+
+        } catch (error) {
+            console.error("❌ ERROR EN REGISTER:", error);
+            return res.status(500).json({ error: "Error al registrar el usuario: " + error.message });
         }
     }
 };
 
+// Exportamos el objeto único que contiene ambos métodos mapeados
 module.exports = authController;

@@ -27,9 +27,9 @@ CREATE TABLE `usuario` (
   `Nombre` varchar(30) NOT NULL,
   `Apellido` varchar(30) NOT NULL,
   `DNI` varchar(15) NOT NULL,
-  `Telefono` varchar(50) NOT NULL,
   `Email` varchar(100) NOT NULL,
   `Administrador` int(1) NOT NULL,
+  `Password` varchar(255) NOT NULL,
   PRIMARY KEY (`ID_usuario`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -133,5 +133,5 @@ VALUES ('Credito');
 ALTER TABLE producto ADD COLUMN validFrom DATETIME DEFAULT '2026-01-01 00:00:00';
 ALTER TABLE producto ADD COLUMN validTo DATETIME DEFAULT '2027-01-01 00:00:00';
 
-INSERT INTO `neodatashop`.`usuario` (`Nombre`, `Apellido`, `DNI`, `Telefono`, `Email`, `Administrador`) 
-VALUES ('Matias', 'Sosa', '45252372', '2975399714', 'matias.agustin.sosa@gmail.com', '1');
+INSERT INTO `usuario` (`Nombre`, `Apellido`, `DNI`, `Email`, `Administrador`, `Password`) 
+VALUES ('Matias', 'Sosa', '45252372', 'matias.agustin.sosa@gmail.com', '1', 'Anibal946@');
