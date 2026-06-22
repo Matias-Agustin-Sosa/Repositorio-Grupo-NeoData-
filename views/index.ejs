@@ -17,19 +17,27 @@
         <div class="container">
             <a class="navbar-brand fw-bold" href="#">NeoData Shop</a>
             
-            <div class="d-flex align-items-center ms-auto">
-                <div id="admin-actions" class="d-flex align-items-center"></div>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
 
-                <button class="btn btn-outline-light d-flex align-items-center gap-2 me-3" data-bs-toggle="modal" data-bs-target="#modalCarrito">
-                    <i class="bi bi-cart3 fs-5"></i>
-                    <span>Ver Carrito</span>
-                    <span class="badge bg-danger" id="contador-carrito">0</span>
-                </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="d-flex align-items-center ms-auto gap-2 py-2 py-lg-0">
+                    
+                    <div id="admin-actions" class="d-flex align-items-center"></div>
 
-                <div id="session-actions" class="d-flex align-items-center">
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#authModal">
-                        <i class="bi bi-person-fill"></i> Mi Cuenta
+                    <button class="btn btn-outline-light d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#modalCarrito">
+                        <i class="bi bi-cart3 fs-5"></i>
+                        <span>Ver Carrito</span>
+                        <span class="badge bg-danger" id="contador-carrito">0</span>
                     </button>
+
+                    <div id="session-actions" class="d-flex align-items-center">
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#authModal">
+                            <i class="bi bi-person-fill"></i> Mi Cuenta
+                        </button>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -157,6 +165,7 @@
         let paginaActual = 1;
 
         // Manejo del Login
+        // Manejo del Login (CORREGIDO)
         async function ejecutarLogin(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -172,8 +181,9 @@
                 const data = await respuesta.json();
                 if (!respuesta.ok) return alert(data.error || "Error al ingresar.");
 
+                // 💡 Guardamos los datos mapeando correctamente la respuesta del Backend
                 localStorage.setItem('token', data.token);
-                localStorage.setItem('esAdmin', data.esAdmin); 
+                localStorage.setItem('esAdmin', data.usuario.administrador); // 👈 MAPEO CORREGIDO AQUÍ
                 
                 alert("¡Bienvenido a NeoData Shop!");
                 location.reload(); 

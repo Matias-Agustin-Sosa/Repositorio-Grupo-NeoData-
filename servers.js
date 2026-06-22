@@ -5,10 +5,11 @@ const express = require('express');
 const path = require('path');
 const cors = require('cors');
 const sequelize = require('./src/config/database'); // Conexión de Sequelize a MySQL
-const productosRouter = require('./src/routes/productosRoutes'); // Router de la API 
+const productosRouter = require('./src/routes/productosRoutes'); 
+const authRoutes = require('./src/routes/authRoutes');
+const reportesRouter = require('./src/routes/reportesRoutes'); // 👈 AGREGÁ ESTA LÍNEA
 
 const app = express();
-const authRoutes = require('./src/routes/authRoutes');
 
 // ==========================================
 // 💡 MIDDLEWARES GLOBAL (PUESTOS ARRIBA DE LAS RUTAS)
@@ -24,7 +25,7 @@ app.use(express.static('Image'));
 // ==========================================
 app.use('/api/auth', authRoutes); // 👈 Ahora sí va a poder leer el req.body perfectamente
 app.use('/api/productos', productosRouter); 
-
+app.use('/api/reportes', reportesRouter);
 // Configuración del motor de plantillas para renderizar la página inicial
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
