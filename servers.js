@@ -1,5 +1,6 @@
 // npm install cors
-require('dotenv').config(); // Carga la caja fuerte de las variables de entorno (.env) 
+require('dotenv').config(); // Carga la caja fuerte de las variables de entorno (.env)
+
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
@@ -7,7 +8,9 @@ const sequelize = require('./src/config/database'); // Conexión de Sequelize a 
 const productosRouter = require('./src/routes/productosRoutes'); // Router de la API 
 
 const app = express();
+const authRoutes = require('./src/routes/authRoutes');
 
+app.use('/api/auth', authRoutes);
 // ==========================================
 //           MIDDLEWARES GLOBAL
 // ==========================================

@@ -2,12 +2,17 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/productosController');
 
-// El Router asocia el Verbo HTTP + la URL con la función del Controlador
+// 🆕 Importamos los guardianes de seguridad
+const { verificarToken, esAdministrador } = require('../middlewares/authmiddleware');
 
-router.get('/', controller.getAll);        // GET /api/productos -> Trae todos
-router.get('/:id', controller.getById);    // GET /api/productos/:id -> Trae uno por ID
-router.post('/', controller.create);       // POST /api/productos -> Crea uno nuevo / Checkout
-router.put('/:id', controller.update);     // PUT /api/productos/:id -> Modifica uno por ID
-router.delete('/:id', controller.remove);  // DELETE /api/productos/:id -> Elimina uno por ID
+
+// RUTAS PÚBLICAS (Cualquier visitante puede ver los celulares)
+router.get('/', controller.getAll);        
+router.get('/:id', controller.getById);    
+
+// RUTAS PROTEGIDAS (Solo accesibles para Usuarios Autenticados AND con flag administrador = 1)
+router.post('/', verificarToken, esAdministrador, controller.create);       
+router.put('/:id', verificarToken, esAdministrador, controller.update);     
+router.delete('/:id', verificarToken, esAdministrador, controller.remove);  
 
 module.exports = router;
