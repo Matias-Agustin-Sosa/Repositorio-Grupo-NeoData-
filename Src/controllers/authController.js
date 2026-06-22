@@ -16,7 +16,7 @@ const authController = {
                 return res.status(401).json({ error: "Credenciales incorrectas." });
             }
 
-            // Si todo está bien, generamos el token (Modificá los parámetros según tu Guía 10)
+            // Generamos el token con la clave unificada
             const token = jwt.sign(
                 { id: usuario.ID_Usuario, administrador: usuario.administrador }, 
                 process.env.JWT_SECRET || 'secret_key_temporal', 
@@ -36,11 +36,10 @@ const authController = {
     },
 
     // ==========================================
-    // 2. REGISTRO DE USUARIOS (Con DNI incluido)
+    // 2. REGISTRO DE USUARIOS
     // ==========================================
     register: async (req, res) => {
         try {
-            // Extraemos los campos desde el req.body que manda el fetch
             const { nombre, apellido, dni, email, password } = req.body;
 
             // Verificamos si el email ya existe en la BD
@@ -53,9 +52,9 @@ const authController = {
             const nuevoUsuario = await Usuario.create({
                 Nombre: nombre,
                 Apellido: apellido,
-                DNI: dni,           // 💡 Ahora sí se lo pasamos al método que el router va a llamar
+                DNI: dni,          
                 Email: email,
-                Password: password, // Texto plano (Clase 10)
+                Password: password, 
                 administrador: 0    // Cliente por defecto
             });
 
@@ -71,5 +70,5 @@ const authController = {
     }
 };
 
-// Exportamos el objeto único que contiene ambos métodos mapeados
+// 💡 Exportamos el objeto único COMPLETO
 module.exports = authController;

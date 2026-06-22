@@ -1,32 +1,33 @@
+// src/middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 
-// Middleware 1: Verifica que el usuario esté logueado (Token válido)
-const verificarToken = (req, res, next) => {
-    const authHeader = req.headers['authorization'];
-    
-    // El token suele venir como "Bearer <TOKEN>"
-    const token = authHeader && authHeader.split(' ')[1];
+const authMiddleware = {
+    verificarToken: (req, res, next) => {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader && authHeader.split(' ')[1]; 
 
-    if (!token) {
-        return res.status(401).json({ error: "Acceso denegado. Token no provisto." });
-    }
+        if (!token) {
+            return res.status(401).json({ error: "Acceso denegado. No se proporcionó un token válido." });
+        }
 
-    try {
-        const decoded = jwt.verify(token, 'SECRET_KEY_NEODATA');
-        req.user = decoded; // Guardamos los datos del usuario en la petición para el siguiente middleware
-        next(); // Continuar a la ruta o al siguiente filtro
-    } catch (error) {
-        return res.status(403).json({ error: "Token inválido o expirado." });
+        try {
+            // 💡 CORREGIDO: Ahora usa 'secret_key_temporal' igual que el Login
+            const verificado = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_temporal');
+            
+            req.usuario = verificado; 
+            next(); 
+        } catch (error) {
+            return res.status(403).json({ error: "Token inválido o expirado." });
+        }
+    },
+
+    esAdmin: (req, res, next) => {
+        // Doble seguridad: Validamos transformando a número
+        if (!req.usuario || Number(req.usuario.administrador) !== 1) {
+            return res.status(403).json({ error: "Permiso denegado. Se requieren privilegios de administrador." });
+        }
+        next(); 
     }
 };
 
-// Middleware 2: Filtra según tu columna modificada 'administrador' (1 = True)
-const esAdministrador = (req, res, next) => {
-    // req.user viene del middleware anterior
-    if (!req.user || req.user.esAdmin !== 1) {
-        return res.status(403).json({ error: "Permisos insuficientes. Requiere rol de Administrador." });
-    }
-    next();
-};
-
-module.exports = { verificarToken, esAdministrador };
+module.exports = authMiddleware;
