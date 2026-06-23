@@ -41,7 +41,8 @@ CREATE TABLE `usuario` (
 
 CREATE TABLE `detalle` (
   `ID_Factura` int(11) NOT NULL AUTO_INCREMENT,
-  `ID_Producto` int(11) NOT NULL,
+  `ID_Producto` int(11) NOT NULL, -- FOREIGN KEY
+  `ID_Producto_Cantidad` varchar(30) NOT NULL,
   PRIMARY KEY (`ID_Factura`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 

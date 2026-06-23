@@ -33,8 +33,9 @@
                     </button>
 
                     <div id="session-actions" class="d-flex align-items-center">
-                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#authModal">
-                            <i class="bi bi-person-fill"></i> Mi Cuenta
+                        <button class="btn btn-outline-light d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#authModal">
+                            <i class="bi bi-person-circle fs-5"></i>
+                            <span>Mi Cuenta</span>
                         </button>
                     </div>
 
@@ -77,6 +78,13 @@
                     <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top fw-bold fs-5">
                         <span>Total:</span>
                         <span class="text-primary" id="total-carrito">$0</span>
+                    </div>
+                    <div class="mb-3 p-3 bg-light rounded border">
+                        <label for="medio-pago" class="form-label small fw-bold text-secondary"><i class="bi bi-credit-card"></i> Selecciona Medio de Pago:</label>
+                        <select id="medio-pago" class="form-select form-select-sm" required>
+                            <option value="1">Tarjeta de Débito</option>
+                            <option value="2">Tarjeta de Crédito</option>
+                        </select>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -531,11 +539,36 @@
         }
 
         async function enviarCheckout() {
+            const token = localStorage.getItem('token');
+            
+            if (!token) {
+                alert("Debes iniciar sesión para poder realizar una compra.");
+                bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                new bootstrap.Modal(document.getElementById('authModal')).show();
+                return;
+            }
+
+            if (carrito.length === 0) {
+                alert("Tu carrito está vacío.");
+                return;
+            }
+
+            const medioPago = document.getElementById('medio-pago').value;
+
+            const datosCompra = {
+                medioPago: parseInt(medioPago),
+                items: carrito 
+            };
+
             try {
-                const respuesta = await fetch('http://localhost:3000/api/checkout', {
+                // 🌟 CORRECCIÓN AQUÍ: Agregamos /checkout al final de la ruta
+                const respuesta = await fetch('http://localhost:3000/api/productos/checkout', { 
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(carrito) 
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
+                    },
+                    body: JSON.stringify(datosCompra) 
                 });
                 
                 const resultado = await respuesta.json();
@@ -544,11 +577,14 @@
                     return;
                 }
 
-                alert(`Servidor responde:\n${resultado.mensaje}`);
+                alert(resultado.mensaje);
+                
                 carrito = [];
                 localStorage.removeItem('carrito'); 
                 actualizarInterfazCarrito();
                 bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+
+                loadProducts(document.getElementById('category-filter').value, paginaActual);
 
             } catch (error) {
                 alert("Error de conexión con el servidor.");

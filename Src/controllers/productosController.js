@@ -2,6 +2,7 @@
 const { Op } = require('sequelize'); 
 const Producto = require('../models/Producto');
 const { getPaginationParams } = require('../utils/pagination');
+const sequelize = require('../config/database');
 
 const productosController = {
     
@@ -54,10 +55,11 @@ const productosController = {
     },
 
     // 🆕 CREAR PRODUCTO (Real)
+    // 📦 1. GUARDAR UN NUEVO PRODUCTO EN EL CATÁLOGO (Acción original del Admin)
     create: async (req, res) => {
         try {
             const { Nombre, Marca, Category, Precio, Stock, Garanty, Descuento, Ruta_Imagen, validFrom, validTo } = req.body;
-            
+
             const nuevoProducto = await Producto.create({
                 Nombre,
                 Marca,
@@ -65,16 +67,73 @@ const productosController = {
                 Precio,
                 Stock,
                 Garanty,
-                Descuento: Descuento || 0,
-                Ruta_Imagen: Ruta_Imagen || '/default.png',
-                validFrom: validFrom || new Date(), // Ajustar según requiera tu modelo
-                validTo: validTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1)) 
+                Descuento,
+                Ruta_Imagen,
+                validFrom: validFrom || new Date(),
+                validTo: validTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             });
 
-            return res.status(201).json({ mensaje: "Producto creado con éxito.", producto: nuevoProducto });
+            return res.status(201).json({ mensaje: "Producto añadido con éxito al catálogo.", producto: nuevoProducto });
         } catch (error) {
-            console.error(error);
-            return res.status(500).json({ error: "Error al crear el producto." });
+            console.error("Error al crear producto:", error);
+            return res.status(500).json({ error: "Error al procesar la creación del producto." });
+        }
+    },
+
+    // 🛒 2. PROCESAR LA COMPRA DEL CARRITO (Factura + Detalle + Descontar Stock)
+    checkout: async (req, res) => {
+        const t = await sequelize.transaction();
+        try {
+            const { medioPago, items } = req.body;
+            const idUsuario = req.usuario.id; 
+            const fechaActual = new Date();
+
+            if (!items || items.length === 0) {
+                return res.status(400).json({ error: "El carrito no tiene productos." });
+            }
+
+            // Inserción en la tabla factura
+            const [facturaResultado] = await sequelize.query(
+                `INSERT INTO factura (Fecha, ID_usuario, ID_MedioPago) VALUES (?, ?, ?)`,
+                { replacements: [fechaActual, idUsuario, medioPago], transaction: t }
+            );
+            
+            const idFacturaGenerada = facturaResultado;
+            const primerProductoId = items[0].id;
+
+            // Formatear ID_Producto_Cantidad (Ej: "3,3,4")
+            let listaIdsRepetidos = [];
+            items.forEach(item => {
+                for (let i = 0; i < item.cantidad; i++) {
+                    listaIdsRepetidos.push(item.id);
+                }
+            });
+            const cadenaProductoCantidad = listaIdsRepetidos.join(',');
+
+            // Inserción en la tabla detalle
+            await sequelize.query(
+                `INSERT INTO detalle (ID_Factura, ID_Producto, ID_Producto_Cantidad) VALUES (?, ?, ?)`,
+                { replacements: [idFacturaGenerada, primerProductoId, cadenaProductoCantidad], transaction: t }
+            );
+
+            // Descontar Stock
+            for (const item of items) {
+                await sequelize.query(
+                    `UPDATE producto SET Stock = Stock - ? WHERE ID_Producto = ?`,
+                    { replacements: [item.cantidad, item.id], transaction: t }
+                );
+            }
+
+            await t.commit();
+            return res.status(201).json({ 
+                mensaje: `Compra efectuada con éxito. Factura Nº ${idFacturaGenerada} emitida.`,
+                idFactura: idFacturaGenerada
+            });
+
+        } catch (error) {
+            await t.rollback();
+            console.error("❌ ERROR EN CHECKOUT CRÍTICO:", error);
+            return res.status(500).json({ error: "Error al registrar la factura en la base de datos." });
         }
     },
 
