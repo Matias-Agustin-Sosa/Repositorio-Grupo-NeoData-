@@ -8,6 +8,7 @@ const sequelize = require('./src/config/database'); // Conexión de Sequelize a 
 const productosRouter = require('./src/routes/productosRoutes'); 
 const authRoutes = require('./src/routes/authRoutes');
 const reportesRouter = require('./src/routes/reportesRoutes'); // 👈 AGREGÁ ESTA LÍNEA
+const usuariosRouter = require('./src/routes/usuariosRoutes');
 
 const app = express();
 
@@ -26,6 +27,10 @@ app.use(express.static('Image'));
 app.use('/api/auth', authRoutes); // 👈 Ahora sí va a poder leer el req.body perfectamente
 app.use('/api/productos', productosRouter); 
 app.use('/api/reportes', reportesRouter);
+app.use('/api/usuarios', usuariosRouter);
+app.get('/usuarios', (req, res) => {
+    res.render('usuarios'); // Buscará views/usuarios.ejs
+});
 // Configuración del motor de plantillas para renderizar la página inicial
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));

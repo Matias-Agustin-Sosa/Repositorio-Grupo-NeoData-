@@ -294,9 +294,17 @@
                     <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Salir</button>
                 `;
 
-                // 🆕 Si el usuario es administrador, pintamos el botón exclusivo de Reportes CSV
-                if (esAdmin == '1') {
+                // 🌟 SI ES ADMIN: Inyectamos el botón "Nuevo Producto" y el de "Gestionar Usuarios"
+                if (esAdmin == '1' && adminContainer) {
                     adminContainer.innerHTML = `
+                        <a class="btn btn-outline-info btn-sm d-flex align-items-center gap-1 me-2" href="/usuarios">
+                            <i class="bi bi-people-fill fs-6"></i>
+                            <span>Gestionar Usuarios</span>
+                        </a>
+                        <button class="btn btn-outline-success btn-sm d-flex align-items-center gap-1 me-2" onclick="abrirModalCrear()">
+                            <i class="bi bi-plus-circle fs-6"></i>
+                            <span>Nuevo Producto</span>
+                        </button>
                         <button class="btn btn-outline-warning btn-sm d-flex align-items-center gap-1 me-3" onclick="descargarReporteCSV()">
                             <i class="bi bi-file-earmark-spreadsheet fs-6"></i>
                             <span>Reporte CSV</span>
