@@ -1,44 +1,39 @@
 // src/controllers/productosController.js
 const { Op } = require('sequelize'); 
 const Producto = require('../models/Producto');
-const { getPaginationParams } = require('../utils/pagination'); // 🆕 Importamos la utilidad que calcula limit y offset
+const { getPaginationParams } = require('../utils/pagination');
 
 const productosController = {
     
-    // 1. MODIFICADO PARA LA CLASE 11 (Reemplaza solo este método)
     getAll: async (req, res) => {
         try {
             const { categoria } = req.query;
             const today = new Date();
 
-            // 🆕 Calculamos los parámetros matemáticos del query string (?page=X)
-            const { limit, offset, page } = getPaginationParams(req.query, 4); // Traemos de a 4 productos
-
+            const { limit, offset, page } = getPaginationParams(req.query, 4);
             const whereCondition = {};
 
-            // Lógica de vigencia temporal (Clase 9)
+            // Removido temporalmente el filtro de vigencia estricta para que el admin pueda ver todo si lo desea,
+            // o puedes mantenerlo si tus productos siempre tienen un rango válido.
             whereCondition.validFrom = { [Op.lte]: today };
             whereCondition.validTo = { [Op.gte]: today };
 
-            // Filtrado por categoría si viene en la URL (Clase 9)
             if (categoria) {
                 whereCondition.Category = categoria;
             }
 
-            // 🆕 Usamos findAndCountAll en lugar de findAll para saber el total de productos en tu MySQL
             const { count, rows: productos } = await Producto.findAndCountAll({ 
                 where: whereCondition,
-                limit: limit,   // Cantidad a traer (4)
-                offset: offset  // Cantidad a saltearse
+                limit: limit,   
+                offset: offset  
             });
 
-            // 🆕 Devolvemos la estructura con los metadatos que pide la guía
             return res.json({
                 totalItems: count,
                 totalPages: Math.ceil(count / limit),
                 currentPage: page,
                 itemsPerPage: limit,
-                productos: productos // El arreglo con los 4 productos de esta página
+                productos: productos 
             });
 
         } catch (error) {
@@ -47,7 +42,6 @@ const productosController = {
         }
     },
 
-    // 2. SE MANTIENE IGUAL
     getById: async (req, res) => {
         try {
             const { id } = req.params;
@@ -59,32 +53,69 @@ const productosController = {
         }
     },
 
-    // 3. SE MANTIENE IGUAL
+    // 🆕 CREAR PRODUCTO (Real)
     create: async (req, res) => {
         try {
-            const carrito = req.body;
-            return res.status(201).json({ mensaje: "Checkout/Producto procesado con éxito." });
+            const { Nombre, Marca, Category, Precio, Stock, Garanty, Descuento, Ruta_Imagen, validFrom, validTo } = req.body;
+            
+            const nuevoProducto = await Producto.create({
+                Nombre,
+                Marca,
+                Category,
+                Precio,
+                Stock,
+                Garanty,
+                Descuento: Descuento || 0,
+                Ruta_Imagen: Ruta_Imagen || '/default.png',
+                validFrom: validFrom || new Date(), // Ajustar según requiera tu modelo
+                validTo: validTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1)) 
+            });
+
+            return res.status(201).json({ mensaje: "Producto creado con éxito.", producto: nuevoProducto });
         } catch (error) {
-            return res.status(500).json({ error: "Error al procesar la solicitud." });
+            console.error(error);
+            return res.status(500).json({ error: "Error al crear el producto." });
         }
     },
 
-    // 4. SE MANTIENE IGUAL
+    // 🆕 ACTUALIZAR PRODUCTO (Real)
     update: async (req, res) => {
         try {
             const { id } = req.params;
-            return res.json({ mensaje: "Producto actualizado con éxito." });
+            const { Nombre, Marca, Category, Precio, Stock, Garanty, Descuento, Ruta_Imagen } = req.body;
+            
+            const producto = await Producto.findByPk(id);
+            if (!producto) return res.status(404).json({ error: "Producto no encontrado." });
+
+            await producto.update({
+                Nombre,
+                Marca,
+                Category,
+                Precio,
+                Stock,
+                Garanty,
+                Descuento,
+                Ruta_Imagen
+            });
+
+            return res.json({ mensaje: "Producto actualizado con éxito.", producto });
         } catch (error) {
+            console.error(error);
             return res.status(500).json({ error: "Error al actualizar." });
         }
     },
 
-    // 5. SE MANTIENE IGUAL
+    // 🆕 ELIMINAR PRODUCTO (Real)
     remove: async (req, res) => {
         try {
             const { id } = req.params;
-            return res.json({ mensaje: "Producto eliminado." });
+            const producto = await Producto.findByPk(id);
+            if (!producto) return res.status(404).json({ error: "Producto no encontrado." });
+
+            await producto.destroy();
+            return res.json({ mensaje: "Producto eliminado definitivamente de la base de datos." });
         } catch (error) {
+            console.error(error);
             return res.status(500).json({ error: "Error al eliminar." });
         }
     }

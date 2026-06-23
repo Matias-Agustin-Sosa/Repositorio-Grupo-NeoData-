@@ -157,6 +157,64 @@
         </div>
     </div>
 
+    <div class="modal fade" id="productoModal" tabindex="-1" aria-labelledby="productoModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title fw-bold" id="productoModalLabel">Gestionar Producto</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="form-producto" onsubmit="guardarProducto(event)">
+                        <input type="hidden" id="prod-id"> <div class="mb-2">
+                            <label class="form-label small">Nombre del Producto</label>
+                            <input type="text" id="prod-nombre" class="form-control form-control-sm" required>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col">
+                                <label class="form-label small">Marca</label>
+                                <input type="text" id="prod-marca" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col">
+                                <label class="form-label small">Categoría</label>
+                                <select id="prod-categoria" class="form-select form-select-sm" required>
+                                    <option value="Componentes">Componentes</option>
+                                    <option value="Periféricos">Periféricos</option>
+                                    <option value="Celulares">Celulares</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col">
+                                <label class="form-label small">Precio ($)</label>
+                                <input type="number" id="prod-precio" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col">
+                                <label class="form-label small">Stock</label>
+                                <input type="number" id="prod-stock" class="form-control form-control-sm" required>
+                            </div>
+                        </div>
+                        <div class="row mb-2">
+                            <div class="col">
+                                <label class="form-label small">Garantía (Fecha)</label>
+                                <input type="date" id="prod-garantia" class="form-control form-control-sm" required>
+                            </div>
+                            <div class="col">
+                                <label class="form-label small">Descuento (%)</label>
+                                <input type="number" id="prod-descuento" class="form-control form-control-sm" value="0">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small">URL de la Imagen</label>
+                            <input type="text" id="prod-imagen" class="form-control form-control-sm" placeholder="/images/producto.png">
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 fw-bold">Guardar Cambios</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -309,8 +367,35 @@
                     return;
                 }
 
+                // Recuperamos el estado admin para usarlo dentro del loop
+                const esAdmin = localStorage.getItem('esAdmin') == '1';
+
                 productos.forEach(producto => {
                     const sinStock = producto.Stock <= 0;
+                    
+                    // Definimos qué botones verá según su rol
+                    let botonesAccion = '';
+                    if (esAdmin) {
+                        botonesAccion = `
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-warning btn-sm flex-fill fw-bold text-dark" onclick="abrirModalEditar(${producto.ID_Producto}, '${escape(JSON.stringify(producto))}')">
+                                    <i class="bi bi-pencil-square"></i> Editar
+                                </button>
+                                <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="eliminarProducto(${producto.ID_Producto})">
+                                    <i class="bi bi-trash3"></i> Borrar
+                                </button>
+                            </div>
+                        `;
+                    } else {
+                        botonesAccion = `
+                            <div class="d-grid">
+                                <button class="btn btn-dark btn-sm" ${sinStock ? 'disabled' : ''} onclick="procesarSeleccion(${producto.ID_Producto}, '${producto.Nombre}', ${producto.Precio})">
+                                    ${sinStock ? 'Sin Stock' : 'Añadir al carrito'}
+                                </button>
+                            </div>
+                        `;
+                    }
+
                     const cardHTML = `
                         <div class="col-12 col-md-6 col-lg-3 mb-4">
                             <div class="card h-100 shadow-sm card-dinamica ${sinStock ? 'opacity-75' : ''}">
@@ -321,20 +406,21 @@
                                         <h6 class="text-primary fw-bold fs-5 m-0">$${Number(producto.Precio).toLocaleString()}</h6>
                                         ${producto.Descuento > 0 ? `<span class="badge bg-danger small">${producto.Descuento}% OFF</span>` : ''}
                                     </div>
+                                    <p class="card-text text-muted small mb-1"><strong>Marca:</strong> ${producto.Marca || 'Genérica'}</p>
                                     <p class="card-text text-muted small mb-3"><strong>Categoría:</strong> ${producto.Category || 'General'}</p>
                                     <div class="mt-auto">
                                         <p class="small fw-bold ${sinStock ? 'text-danger' : 'text-success'} mb-2">
                                             ${sinStock ? 'Agotado' : `Stock: ${producto.Stock} u.`}
                                         </p>
+                                        
+                                        ${!esAdmin ? `
                                         <div class="mb-3 d-flex align-items-center gap-2">
                                             <label for="cant-${producto.ID_Producto}" class="small text-secondary text-nowrap">Cant:</label>
                                             <input type="number" id="cant-${producto.ID_Producto}" class="form-control form-control-sm text-center" value="1" min="1" max="${producto.Stock}" ${sinStock ? 'disabled' : ''} style="width: 70px;">
                                         </div>
-                                        <div class="d-grid">
-                                            <button class="btn btn-dark btn-sm" ${sinStock ? 'disabled' : ''} onclick="procesarSeleccion(${producto.ID_Producto}, '${producto.Nombre}', ${producto.Precio})">
-                                                ${sinStock ? 'Sin Stock' : 'Añadir al carrito'}
-                                            </button>
-                                        </div>
+                                        ` : ''}
+                                        
+                                        ${botonesAccion}
                                     </div>
                                 </div>
                             </div>
@@ -458,6 +544,109 @@
 
             } catch (error) {
                 alert("Error de conexión con el servidor.");
+            }
+        }
+
+        // --- FUNCIONES CRUD ADMINISTRADOR ---
+
+        function abrirModalCrear() {
+            document.getElementById('form-producto').reset();
+            document.getElementById('prod-id').value = ""; // Vaciamos ID indicando "NUEVO"
+            document.getElementById('productoModalLabel').innerText = "Nuevo Producto";
+            
+            const modal = new bootstrap.Modal(document.getElementById('productoModal'));
+            modal.show();
+        }
+
+        function abrirModalEditar(id, productoEscapado) {
+            const producto = JSON.parse(unescape(productoEscapado));
+            
+            // Llenamos el formulario con los datos actuales de la DB
+            document.getElementById('prod-id').value = producto.ID_Producto;
+            document.getElementById('prod-nombre').value = producto.Nombre;
+            document.getElementById('prod-marca').value = producto.Marca || '';
+            document.getElementById('prod-categoria').value = producto.Category;
+            document.getElementById('prod-precio').value = producto.Precio;
+            document.getElementById('prod-stock').value = producto.Stock;
+            document.getElementById('prod-descuento').value = producto.Descuento;
+            document.getElementById('prod-imagen').value = producto.Ruta_Imagen;
+            
+            // Convertimos fecha de la base de datos (YYYY-MM-DDTHH:MM:SS) a YYYY-MM-DD requerido por inputs de tipo date
+            if (producto.Garanty) {
+                document.getElementById('prod-garantia').value = producto.Garanty.split('T')[0];
+            }
+
+            document.getElementById('productoModalLabel').innerText = "Editar Producto";
+            const modal = new bootstrap.Modal(document.getElementById('productoModal'));
+            modal.show();
+        }
+
+        async function guardarProducto(event) {
+            event.preventDefault();
+            const token = localStorage.getItem('token');
+            if(!token) return alert("Inicia sesión como admin.");
+
+            const id = document.getElementById('prod-id').value;
+            
+            const payload = {
+                Nombre: document.getElementById('prod-nombre').value,
+                Marca: document.getElementById('prod-marca').value,
+                Category: document.getElementById('prod-categoria').value,
+                Precio: parseFloat(document.getElementById('prod-precio').value),
+                Stock: parseInt(document.getElementById('prod-stock').value),
+                Garanty: document.getElementById('prod-garantia').value,
+                Descuento: parseInt(document.getElementById('prod-descuento').value) || 0,
+                Ruta_Imagen: document.getElementById('prod-imagen').value || '/default.png'
+            };
+
+            // Si "id" tiene valor, la ruta destino es un PUT (/id). De lo contrario es un POST general
+            const url = id ? `http://localhost:3000/api/productos/${id}` : 'http://localhost:3000/api/productos';
+            const metodo = id ? 'PUT' : 'POST';
+
+            try {
+                const respuesta = await fetch(url, {
+                    method: metodo,
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` // Es importante enviar el token JWT
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await respuesta.json();
+                if(!respuesta.ok) throw new Error(data.error || "Error en operación");
+
+                alert(data.mensaje);
+                
+                // Ocultar modal manualmente y refrescar catálogo
+                const modalElement = document.getElementById('productoModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
+                modalInstance.hide();
+                
+                loadProducts(document.getElementById('category-filter').value, paginaActual);
+
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
+        async function eliminarProducto(id) {
+            if (!confirm("¿Estás completamente seguro de eliminar este producto? Esta acción no se puede deshacer.")) return;
+            
+            const token = localStorage.getItem('token');
+            try {
+                const respuesta = await fetch(`http://localhost:3000/api/productos/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                const data = await respuesta.json();
+                if(!respuesta.ok) throw new Error(data.error || "No se pudo eliminar");
+
+                alert(data.mensaje);
+                loadProducts(document.getElementById('category-filter').value, paginaActual);
+            } catch (error) {
+                alert(error.message);
             }
         }
 
