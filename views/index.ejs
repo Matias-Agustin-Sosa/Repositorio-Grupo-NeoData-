@@ -189,11 +189,12 @@
                             </div>
                             <div class="col">
                                 <label class="form-label small">Categoría</label>
-                                <select id="prod-categoria" class="form-select form-select-sm" required>
+                                <input type="text" id="prod-categoria" class="form-control form-control-sm" list="categorias-producto" required>
+                                <datalist id="categorias-producto">
                                     <option value="Componentes">Componentes</option>
                                     <option value="Periféricos">Periféricos</option>
                                     <option value="Celulares">Celulares</option>
-                                </select>
+                                </datalist>
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -458,6 +459,26 @@
             }
         }
 
+        function agregarCategoriaDisponible(categoria) {
+            const nombreCategoria = String(categoria || "").trim();
+            if (!nombreCategoria) return;
+
+            const datalist = document.getElementById('categorias-producto');
+            if (datalist && !Array.from(datalist.options).some(option => option.value.toLowerCase() === nombreCategoria.toLowerCase())) {
+                const option = document.createElement('option');
+                option.value = nombreCategoria;
+                datalist.appendChild(option);
+            }
+
+            const filtro = document.getElementById('category-filter');
+            if (filtro && !Array.from(filtro.options).some(option => option.value.toLowerCase() === nombreCategoria.toLowerCase())) {
+                const option = document.createElement('option');
+                option.value = nombreCategoria;
+                option.textContent = nombreCategoria;
+                filtro.appendChild(option);
+            }
+        }
+
         async function loadProducts(selectedCategory = "", page = 1) {
             try {
                 paginaActual = page; 
@@ -488,6 +509,8 @@
                 const esAdmin = localStorage.getItem('esAdmin') == '1';
 
                 productos.forEach(producto => {
+                    agregarCategoriaDisponible(producto.Category);
+
                     const sinStock = producto.Stock <= 0;
                     const estaHabilitado = producto.Habilitado !== 0;
 
@@ -603,6 +626,7 @@
             document.getElementById('prod-id').value = producto.ID_Producto;
             document.getElementById('prod-nombre').value = producto.Nombre;
             document.getElementById('prod-marca').value = producto.Marca;
+            agregarCategoriaDisponible(producto.Category);
             document.getElementById('prod-categoria').value = producto.Category;
             document.getElementById('prod-precio').value = producto.Precio;
             document.getElementById('prod-stock').value = producto.Stock;
@@ -620,12 +644,18 @@
             event.preventDefault();
             const id = document.getElementById('prod-id').value;
             const token = localStorage.getItem('token');
+            const categoria = document.getElementById('prod-categoria').value.trim();
+
+            if (!categoria) {
+                alert("La categoria es obligatoria.");
+                return;
+            }
 
             // 🌟 NUEVO: Recolecta Garanty como un entero nativo
             const payload = {
                 Nombre: document.getElementById('prod-nombre').value,
                 Marca: document.getElementById('prod-marca').value,
-                Category: document.getElementById('prod-categoria').value,
+                Category: categoria,
                 Precio: parseFloat(document.getElementById('prod-precio').value),
                 Stock: parseInt(document.getElementById('prod-stock').value),
                 Garanty: parseInt(document.getElementById('prod-garantia').value), 
@@ -649,6 +679,7 @@
                 const data = await respuesta.json();
                 if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar el producto.");
 
+                agregarCategoriaDisponible(categoria);
                 alert(data.mensaje);
                 
                 const modalElement = document.getElementById('productoModal');
