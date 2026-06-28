@@ -140,6 +140,7 @@ const productosController = {
             const idFacturaGenerada = facturaResultado?.insertId || facturaMetadata?.insertId || facturaResultado;
             const primerProductoId = items[0].id;
             let totalCompra = 0;
+            let totalSinDescuentos = 0;
 
             // Formatear ID_Producto_Cantidad (Ej: "3,3,4")
             let listaIdsRepetidos = [];
@@ -155,13 +156,22 @@ const productosController = {
                     return res.status(400).json({ error: `No hay stock suficiente para ${producto.Nombre}.` });
                 }
 
-                const descuentoAplicado = descuentoCupon ?? Number(producto.Descuento || 0);
-                totalCompra += (Number(producto.Precio) * item.cantidad) * (1 - descuentoAplicado / 100);
+                const subtotalSinDescuento = Number(producto.Precio) * item.cantidad;
+                totalSinDescuentos += subtotalSinDescuento;
+
+                if (descuentoCupon === null) {
+                    totalCompra += subtotalSinDescuento * (1 - Number(producto.Descuento || 0) / 100);
+                }
 
                 for (let i = 0; i < item.cantidad; i++) {
                     listaIdsRepetidos.push(item.id);
                 }
             }
+
+            if (descuentoCupon !== null) {
+                totalCompra = totalSinDescuentos * (1 - descuentoCupon / 100);
+            }
+
             const cadenaProductoCantidad = listaIdsRepetidos.join(',');
 
             if (idCupon === 0) {

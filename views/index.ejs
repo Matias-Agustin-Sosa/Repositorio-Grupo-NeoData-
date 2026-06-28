@@ -87,7 +87,7 @@
                             <option value="2">Tarjeta de Crédito</option>
                         </select>
                         <label for="cupon-carrito" class="form-label small fw-bold text-secondary mt-3"><i class="bi bi-ticket-perforated"></i> Cupon opcional:</label>
-                        <input type="number" id="cupon-carrito" class="form-control form-control-sm" min="1" max="2" placeholder="1 o 2">
+                        <input type="number" id="cupon-carrito" class="form-control form-control-sm" min="1" max="2" placeholder="Ej: 10012832">
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -741,12 +741,19 @@
                 listaProductos.innerHTML = "";
 
                 const cupon = obtenerCuponCarrito();
+                const tieneCuponValido = cupon.descuento !== null && !cupon.invalido;
                 let sumaTotal = 0;
+                let totalSinDescuentos = 0;
                 carrito.forEach(item => {
-                    const descuentoAplicado = cupon.descuento ?? Number(item.descuento || 0);
-                    const subtotal = (item.precio * item.cantidad) * (1 - descuentoAplicado / 100);
+                    const subtotalSinDescuento = item.precio * item.cantidad;
+                    const descuentoProducto = Number(item.descuento || 0);
+                    const subtotal = tieneCuponValido
+                        ? subtotalSinDescuento
+                        : subtotalSinDescuento * (1 - descuentoProducto / 100);
+                    const textoDescuento = !tieneCuponValido && descuentoProducto > 0 ? ` - ${descuentoProducto}% OFF` : '';
+
+                    totalSinDescuentos += subtotalSinDescuento;
                     sumaTotal += subtotal;
-                    const textoDescuento = descuentoAplicado > 0 ? ` - ${descuentoAplicado}% OFF` : '';
 
                     listaProductos.innerHTML += `
                         <li class="list-group-item d-flex justify-content-between align-items-center small">
@@ -764,6 +771,10 @@
                         </li>
                     `;
                 });
+
+                if (tieneCuponValido) {
+                    sumaTotal = totalSinDescuentos * (1 - cupon.descuento / 100);
+                }
 
                 totalElemento.innerText = `$${Math.round(sumaTotal).toLocaleString()}`;
                 btnVaciar.removeAttribute('disabled');
