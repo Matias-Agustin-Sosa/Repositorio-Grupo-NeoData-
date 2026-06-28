@@ -14,14 +14,23 @@ const productosController = {
             const { limit, offset, page } = getPaginationParams(req.query, 4);
             const whereCondition = {};
 
-            // Removido temporalmente el filtro de vigencia estricta para que el admin pueda ver todo si lo desea,
-            // o puedes mantenerlo si tus productos siempre tienen un rango válido.
+            // Filtros de vigencia por fecha
             whereCondition.validFrom = { [Op.lte]: today };
             whereCondition.validTo = { [Op.gte]: today };
 
             if (categoria) {
                 whereCondition.Category = categoria;
             }
+
+            // 🌟 NUEVA LÓGICA: Filtrado por Rol (Habilitado 1 o 0)
+            // Revisamos si el middleware 'verificarToken' adjuntó el usuario y es administrador
+            const esAdmin = req.usuario && Number(req.usuario.administrador) === 1;
+
+            if (!esAdmin) {
+                // Si NO es administrador (es cliente o visitante), solo ve productos con Habilitado: 1
+                whereCondition.Habilitado = 1;
+            }
+            // Si es admin, no agregamos la condición 'Habilitado' para que traiga tanto 1 como 0
 
             const { count, rows: productos } = await Producto.findAndCountAll({ 
                 where: whereCondition,
@@ -54,66 +63,122 @@ const productosController = {
         }
     },
 
-    // 🆕 CREAR PRODUCTO (Real)
-    // 📦 1. GUARDAR UN NUEVO PRODUCTO EN EL CATÁLOGO (Acción original del Admin)
     create: async (req, res) => {
         try {
-            const { Nombre, Marca, Category, Precio, Stock, Garanty, Descuento, Ruta_Imagen, validFrom, validTo } = req.body;
+            const { Nombre, Marca, Category, Precio, Stock, Garanty, Descuento, Ruta_Imagen } = req.body;
 
             const nuevoProducto = await Producto.create({
                 Nombre,
                 Marca,
                 Category,
-                Precio,
-                Stock,
-                Garanty,
-                Descuento,
+                Precio: parseFloat(Precio),
+                Stock: parseInt(Stock),
+                Garanty: parseInt(Garanty), // 🌟 Forzamos que se guarde como entero numérico
+                Descuento: parseInt(Descuento),
                 Ruta_Imagen,
-                validFrom: validFrom || new Date(),
-                validTo: validTo || new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+                Habilitado: 1 // Habilitado por defecto al crearse
             });
 
-            return res.status(201).json({ mensaje: "Producto añadido con éxito al catálogo.", producto: nuevoProducto });
+            return res.status(201).json({ 
+                mensaje: "¡Producto creado con éxito en NeoData Shop!", 
+                producto: nuevoProducto 
+            });
         } catch (error) {
-            console.error("Error al crear producto:", error);
-            return res.status(500).json({ error: "Error al procesar la creación del producto." });
+            console.error("❌ Error al crear producto:", error);
+            return res.status(500).json({ error: "Error interno en el servidor al intentar registrar el producto." });
         }
     },
-
+    
     // 🛒 2. PROCESAR LA COMPRA DEL CARRITO (Factura + Detalle + Descontar Stock)
     checkout: async (req, res) => {
-        const t = await sequelize.transaction();
+        let t;
         try {
-            const { medioPago, items } = req.body;
+            const productos = Array.isArray(req.body.productos) ? req.body.productos : req.body.items;
+            const medioPago = Number(req.body.ID_MedioPago ?? req.body.medioPago);
+            const cuponIngresado = req.body.ID_Cupon ?? req.body.cupon ?? "";
             const idUsuario = req.usuario.id; 
             const fechaActual = new Date();
 
-            if (!items || items.length === 0) {
+            if (!Array.isArray(productos) || productos.length === 0) {
                 return res.status(400).json({ error: "El carrito no tiene productos." });
             }
 
+            if (!Number.isInteger(medioPago) || medioPago <= 0) {
+                return res.status(400).json({ error: "El medio de pago no es valido." });
+            }
+
+            const cuponNormalizado = typeof cuponIngresado === 'string' ? cuponIngresado.trim() : cuponIngresado;
+            const idCupon = cuponNormalizado === "" || cuponNormalizado === null ? 0 : Number(cuponNormalizado);
+            if (![0, 1, 2].includes(idCupon)) {
+                return res.status(400).json({ error: "Cupon Invalido" });
+            }
+
+            const descuentoCupon = idCupon === 1 ? 20 : idCupon === 2 ? 15 : null;
+
+            const items = productos.map(item => ({
+                id: Number(item.ID_Producto ?? item.id),
+                cantidad: Number(item.Cantidad ?? item.cantidad)
+            }));
+
+            const tieneItemInvalido = items.some(item =>
+                !Number.isInteger(item.id) || item.id <= 0 ||
+                !Number.isInteger(item.cantidad) || item.cantidad <= 0
+            );
+
+            if (tieneItemInvalido) {
+                return res.status(400).json({ error: "Los productos del carrito no son validos." });
+            }
+
+            t = await sequelize.transaction();
+
             // Inserción en la tabla factura
-            const [facturaResultado] = await sequelize.query(
+            const [facturaResultado, facturaMetadata] = await sequelize.query(
                 `INSERT INTO factura (Fecha, ID_usuario, ID_MedioPago) VALUES (?, ?, ?)`,
                 { replacements: [fechaActual, idUsuario, medioPago], transaction: t }
             );
             
-            const idFacturaGenerada = facturaResultado;
+            const idFacturaGenerada = facturaResultado?.insertId || facturaMetadata?.insertId || facturaResultado;
             const primerProductoId = items[0].id;
+            let totalCompra = 0;
 
             // Formatear ID_Producto_Cantidad (Ej: "3,3,4")
             let listaIdsRepetidos = [];
-            items.forEach(item => {
+            for (const item of items) {
+                const producto = await Producto.findByPk(item.id, { transaction: t });
+                if (!producto) {
+                    await t.rollback();
+                    return res.status(404).json({ error: `Producto ${item.id} no encontrado.` });
+                }
+
+                if (producto.Stock < item.cantidad) {
+                    await t.rollback();
+                    return res.status(400).json({ error: `No hay stock suficiente para ${producto.Nombre}.` });
+                }
+
+                const descuentoAplicado = descuentoCupon ?? Number(producto.Descuento || 0);
+                totalCompra += (Number(producto.Precio) * item.cantidad) * (1 - descuentoAplicado / 100);
+
                 for (let i = 0; i < item.cantidad; i++) {
                     listaIdsRepetidos.push(item.id);
                 }
-            });
+            }
             const cadenaProductoCantidad = listaIdsRepetidos.join(',');
+
+            if (idCupon === 0) {
+                await sequelize.query(
+                    `SET SESSION sql_mode = IF(@@sql_mode LIKE '%NO_AUTO_VALUE_ON_ZERO%', @@sql_mode, IF(@@sql_mode = '', 'NO_AUTO_VALUE_ON_ZERO', CONCAT(@@sql_mode, ',NO_AUTO_VALUE_ON_ZERO')))`,
+                    { transaction: t }
+                );
+                await sequelize.query(
+                    `INSERT IGNORE INTO Cupon (ID_Cupon, Descuento, Tipo) VALUES (?, ?, ?)`,
+                    { replacements: [0, 0, 'Sin cupon'], transaction: t }
+                );
+            }
 
             // Inserción en la tabla detalle
             await sequelize.query(
-                `INSERT INTO detalle (ID_Factura, ID_Producto, ID_Producto_Cantidad) VALUES (?, ?, ?)`,
-                { replacements: [idFacturaGenerada, primerProductoId, cadenaProductoCantidad], transaction: t }
+                `INSERT INTO detalle (ID_Factura, ID_Producto, ID_Producto_Cantidad, ID_Cupon) VALUES (?, ?, ?, ?)`,
+                { replacements: [idFacturaGenerada, primerProductoId, cadenaProductoCantidad, idCupon], transaction: t }
             );
 
             // Descontar Stock
@@ -127,11 +192,13 @@ const productosController = {
             await t.commit();
             return res.status(201).json({ 
                 mensaje: `Compra efectuada con éxito. Factura Nº ${idFacturaGenerada} emitida.`,
-                idFactura: idFacturaGenerada
+                idFactura: idFacturaGenerada,
+                id_factura: idFacturaGenerada,
+                total: Math.round(totalCompra)
             });
 
         } catch (error) {
-            await t.rollback();
+            if (t && !t.finished) await t.rollback();
             console.error("❌ ERROR EN CHECKOUT CRÍTICO:", error);
             return res.status(500).json({ error: "Error al registrar la factura en la base de datos." });
         }
@@ -164,20 +231,24 @@ const productosController = {
         }
     },
 
-    // 🆕 ELIMINAR PRODUCTO (Real)
+    // 🆕 DESHABILITAR/HABILITAR PRODUCTO (Borrado lógico)
     remove: async (req, res) => {
         try {
             const { id } = req.params;
             const producto = await Producto.findByPk(id);
             if (!producto) return res.status(404).json({ error: "Producto no encontrado." });
 
-            await producto.destroy();
-            return res.json({ mensaje: "Producto eliminado definitivamente de la base de datos." });
+            // 🌟 Cambiamos el estado: si es 0 pasa a 1, si es 1 pasa a 0
+            const nuevoEstado = producto.Habilitado === 0 ? 1 : 0;
+            await producto.update({ Habilitado: nuevoEstado });
+
+            const accion = nuevoEstado === 1 ? "habilitado" : "deshabilitado";
+            return res.json({ mensaje: `Producto ${accion} con éxito en la base de datos.` });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: "Error al eliminar." });
+            return res.status(500).json({ error: "Error al cambiar el estado del producto." });
         }
-    }
+    },
 };
 
 module.exports = productosController;

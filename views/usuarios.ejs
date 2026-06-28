@@ -114,24 +114,35 @@
                 tbody.innerHTML = '';
 
                 usuarios.forEach(u => {
+                    const estaActivo = u.Activo !== 0; 
+
+                    const botonEstado = estaActivo 
+                        ? `<button class="btn btn-secondary btn-sm fw-bold" onclick="cambiarEstadoUsuario(${u.ID_Usuario}, 'deshabilitar')">
+                                <i class="bi bi-person-x"></i> Deshabilitar
+                           </button>`
+                        : `<button class="btn btn-success btn-sm fw-bold" onclick="cambiarEstadoUsuario(${u.ID_Usuario}, 'habilitar')">
+                                <i class="bi bi-person-check"></i> Habilitar
+                           </button>`;
+
                     tbody.innerHTML += `
-                        <tr>
+                        <tr class="${estaActivo ? '' : 'table-danger text-muted'}">
                             <td><strong>#${u.ID_Usuario}</strong></td>
                             <td>${u.Nombre} ${u.Apellido}</td>
                             <td>${u.DNI}</td>
                             <td>${u.Email}</td>
                             <td>
-                                <span class="badge ${u.administrador === 1 ? 'bg-danger' : 'bg-secondary'}">
+                                <span class="badge ${u.administrador === 1 ? 'bg-danger' : 'bg-secondary'} me-1">
                                     ${u.administrador === 1 ? 'Admin' : 'Cliente'}
+                                </span>
+                                <span class="badge ${estaActivo ? 'bg-success' : 'bg-dark'}">
+                                    ${estaActivo ? 'Activo' : 'Inactivo'}
                                 </span>
                             </td>
                             <td class="text-center">
                                 <button class="btn btn-warning btn-sm fw-bold me-1 text-dark" onclick="abrirModalEditar('${escape(JSON.stringify(u))}')">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </button>
-                                <button class="btn btn-danger btn-sm fw-bold" onclick="eliminarUsuario(${u.ID_Usuario})">
-                                    <i class="bi bi-trash3"></i> Borrar
-                                </button>
+                                ${botonEstado}
                             </td>
                         </tr>
                     `;
@@ -203,18 +214,24 @@
             }
         }
 
-        async function eliminarUsuario(id) {
-            if(!confirm("¿Deseas dar de baja a este usuario permanentemente?")) return;
+        async function cambiarEstadoUsuario(id, accion) {
+            const mensajeConfirmacion = accion === 'habilitar' 
+                ? "¿Deseas habilitar a este usuario nuevamente?" 
+                : "¿Deseas deshabilitar a este usuario? Ya no podrá ingresar al sistema.";
+
+            if(!confirm(mensajeConfirmacion)) return;
+
             try {
+                // Seguimos usando el método DELETE que mapea a tu función 'remove' en el controlador
                 const res = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
-                    method: 'DELETE',
+                    method: 'DELETE', 
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const data = await res.json();
-                if(!res.ok) throw new Error(data.error || "No se pudo eliminar");
+                if(!res.ok) throw new Error(data.error || `No se pudo ${accion} al usuario`);
 
                 alert(data.mensaje);
-                cargarUsuarios();
+                cargarUsuarios(); // 🌟 Esto vuelve a consultar la API y redibuja la tabla con los cambios actualizados
             } catch (error) {
                 alert(error.message);
             }

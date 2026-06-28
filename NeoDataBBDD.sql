@@ -29,6 +29,7 @@ CREATE TABLE `usuario` (
   `DNI` varchar(15) NOT NULL,
   `Email` varchar(100) NOT NULL,
   `Administrador` int(1) NOT NULL,
+  `Activo` TINYINT DEFAULT(1),
   `Password` varchar(255) NOT NULL,
   PRIMARY KEY (`ID_usuario`)
   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -41,8 +42,9 @@ CREATE TABLE `usuario` (
 
 CREATE TABLE `detalle` (
   `ID_Factura` int(11) NOT NULL AUTO_INCREMENT,
-  `ID_Producto` int(11) NOT NULL, -- FOREIGN KEY
+  `ID_Producto` int(11) NOT NULL,
   `ID_Producto_Cantidad` varchar(30) NOT NULL,
+  `ID_Cupon` int(20) DEFAULT(null),
   PRIMARY KEY (`ID_Factura`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -85,10 +87,23 @@ CREATE TABLE `producto` (
   `Category` varchar(100) NOT NULL,
   `Precio` decimal(60,0) NOT NULL,
   `Stock` int(10) NOT NULL,
-  `Garanty` date NOT NULL,
+  `Garanty` int(10) NOT NULL,
   `Descuento` int(11) NOT NULL,
   `Ruta_Imagen` varchar(80) NOT NULL,
+  `Habilitado` TINYINT DEFAULT(1),
   PRIMARY KEY (`ID_Producto`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `Cupon`
+--
+CREATE TABLE `Cupon` (
+  `ID_Cupon` int(20) NOT NULL AUTO_INCREMENT,
+  `Descuento` int(20) NOT NULL,
+  `Tipo` varchar(20) NOT NULL,
+  PRIMARY KEY (`ID_Cupon`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -100,7 +115,8 @@ CREATE TABLE `producto` (
 --
 ALTER TABLE `detalle`
   ADD CONSTRAINT `detalle_ibfk_1` FOREIGN KEY (`ID_Factura`) REFERENCES `factura` (`ID_Factura`),
-  ADD CONSTRAINT `detalle_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `producto` (`ID_Producto`);
+  ADD CONSTRAINT `detalle_ibfk_2` FOREIGN KEY (`ID_Producto`) REFERENCES `producto` (`ID_Producto`),
+  ADD CONSTRAINT `detalle_ibfk_3` FOREIGN KEY (`ID_Cupon`) REFERENCES `Cupon` (`ID_Cupon`);
 
 --
 -- Filtros para la tabla `factura`
@@ -113,23 +129,28 @@ ALTER TABLE `factura`
 -- Agregamos datos
 --
 
-INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Smartwatch', 'Xio', 'Componentes', 50000, 3, '2026-07-07', 3, 'Smartwatch.png');
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`, `Habilitado`) 
+VALUES ('Smartwatch', 'Xio', 'Componentes', 50000, 3, '2', 3, 'Smartwatch.png', '1');
 
-INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Mouse Gamer', 'Red Dragon', 'Periféricos', 30000, 2, '2026-08-07', 4, 'Mouse.png');
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`, `Habilitado`) 
+VALUES ('Mouse Gamer', 'Red Dragon', 'Periféricos', 30000, 2, '1', 4, 'Mouse.png', '1');
 
-INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Celular A34', 'Samsung', 'Celulares', 450000, 13, '2027-04-04', 10, 'Celular.png');
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`, `Habilitado`) 
+VALUES ('Celular A34', 'Samsung', 'Celulares', 450000, 13, '2', 10, 'Celular.png', '1');
 
-INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`) 
-VALUES ('Auriculares', 'JBL', 'Periféricos', 10000, 6, '2026-06-04', 1, 'Auriculares.png');
+INSERT INTO `producto` ( `Nombre`, `Marca`, `Category`, `Precio`, `Stock`, `Garanty`, `Descuento`, `Ruta_Imagen`, `Habilitado`) 
+VALUES ('Auriculares', 'JBL', 'Periféricos', 10000, 6, '3', 1, 'Auriculares.png', '1');
 
 INSERT INTO `medio_pago` (`Modalidad`) 
 VALUES ('Devito');
 
 INSERT INTO `medio_pago` (`Modalidad`) 
 VALUES ('Credito');
+
+INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('20', 'Empleado');
+INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('15', 'Cupon de calle');
+INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('0', 'Ninguno');
+
 
 ALTER TABLE producto ADD COLUMN validFrom DATETIME DEFAULT '2026-01-01 00:00:00';
 ALTER TABLE producto ADD COLUMN validTo DATETIME DEFAULT '2027-01-01 00:00:00';

@@ -4,7 +4,7 @@ const usuariosController = {
     // Listar todos los usuarios
     getAll: async (req, res) => {
         try {
-            const usuarios = await Usuario.findAll();
+            const usuarios = await Usuario.findAll(); 
             return res.json(usuarios);
         } catch (error) {
             console.error(error);
@@ -72,18 +72,23 @@ const usuariosController = {
         }
     },
 
-    // Eliminar un usuario
+    // Deshabilitar un usuario (Borrado lógico)
     remove: async (req, res) => {
         try {
             const { id } = req.params;
             const usuario = await Usuario.findByPk(id);
             if (!usuario) return res.status(404).json({ error: "Usuario no encontrado." });
 
-            await usuario.destroy();
-            return res.json({ mensaje: "Usuario eliminado de la base de datos con éxito." });
+            // 🌟 CORRECCIÓN: Usamos 'Activo' con Mayúscula
+            const nuevoEstado = usuario.Activo === 0 ? 1 : 0;
+            
+            await usuario.update({ Activo: nuevoEstado });
+            
+            const accion = nuevoEstado === 1 ? "habilitado" : "deshabilitado";
+            return res.json({ mensaje: `Usuario ${accion} con éxito.` });
         } catch (error) {
             console.error(error);
-            return res.status(500).json({ error: "Error al eliminar el usuario." });
+            return res.status(500).json({ error: "Error al procesar el estado del usuario." });
         }
     }
 };

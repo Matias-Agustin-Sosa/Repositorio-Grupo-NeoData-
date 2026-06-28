@@ -16,6 +16,11 @@ const authController = {
                 return res.status(401).json({ error: "Credenciales incorrectas." });
             }
 
+            // 🌟 NUEVA VALIDACIÓN: Si el usuario está deshabilitado, bloqueamos el ingreso
+            if (usuario.Activo === 0) {
+                return res.status(403).json({ error: "Cuenta inhabilitada. Por favor, contacte al administrador." });
+            }
+
             // Generamos el token con la clave unificada
             const token = jwt.sign(
                 { id: usuario.ID_Usuario, administrador: usuario.administrador }, 

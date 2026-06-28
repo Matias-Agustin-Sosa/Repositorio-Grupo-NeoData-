@@ -86,10 +86,12 @@
                             <option value="1">Tarjeta de Débito</option>
                             <option value="2">Tarjeta de Crédito</option>
                         </select>
+                        <label for="cupon-carrito" class="form-label small fw-bold text-secondary mt-3"><i class="bi bi-ticket-perforated"></i> Cupon opcional:</label>
+                        <input type="number" id="cupon-carrito" class="form-control form-control-sm" min="1" max="2" placeholder="1 o 2">
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-danger me-auto" id="btn-vaciar" onclick="vaciarCarrito()" disabled>
+                    <button type="button" class="btn btn-danger me-auto" id="btn-vaciar" onclick="abrirModalConfirmarVaciar()" disabled>
                         <i class="bi bi-trash3 me-1"></i>Vaciar Carrito
                     </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Seguir Comprando</button>
@@ -106,7 +108,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold" id="authModalLabel">NeoData Shop - Acceso</h5>
-                    <button type="button" class="btn-close" data-bs-close="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <ul class="nav nav-tabs mb-3" id="authTabs" role="tablist">
@@ -175,7 +177,8 @@
                 </div>
                 <div class="modal-body">
                     <form id="form-producto" onsubmit="guardarProducto(event)">
-                        <input type="hidden" id="prod-id"> <div class="mb-2">
+                        <input type="hidden" id="prod-id"> 
+                        <div class="mb-2">
                             <label class="form-label small">Nombre del Producto</label>
                             <input type="text" id="prod-nombre" class="form-control form-control-sm" required>
                         </div>
@@ -205,8 +208,8 @@
                         </div>
                         <div class="row mb-2">
                             <div class="col">
-                                <label class="form-label small">Garantía (Fecha)</label>
-                                <input type="date" id="prod-garantia" class="form-control form-control-sm" required>
+                                <label class="form-label small">Garantía (Años)</label>
+                                <input type="number" id="prod-garantia" class="form-control form-control-sm" min="0" max="50" required placeholder="Ej: 1">
                             </div>
                             <div class="col">
                                 <label class="form-label small">Descuento (%)</label>
@@ -224,6 +227,57 @@
         </div>
     </div>
 
+    <div class="modal fade" id="modalCompraExitosa" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-success text-white border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-bag-check-fill me-2"></i>¡Compra Exitosa!
+                    </h5>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+                    <h4 class="fw-bold mt-3">¡Gracias por tu compra!</h4>
+                    <p class="text-muted">Tu pedido fue procesado correctamente.</p>
+                    <div class="bg-light rounded p-3 my-3 text-start">
+                        <p class="mb-1 small text-muted">Número de Factura</p>
+                        <h5 class="fw-bold text-dark" id="modal-id-factura">#0000</h5>
+                        <hr>
+                        <p class="mb-1 small text-muted">Productos comprados</p>
+                        <ul class="list-unstyled mb-0" id="modal-lista-productos"></ul>
+                        <hr>
+                        <p class="mb-1 small text-muted">Total abonado</p>
+                        <h5 class="fw-bold text-success" id="modal-total-compra">$0</h5>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-success fw-bold px-5" data-bs-dismiss="modal">
+                        Finalizar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalConfirmarVaciar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+             <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-danger text-white border-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Vaciar Carrito
+                    </h5>
+                </div>
+                <div class="modal-body text-center py-3">
+                    <p class="mb-0">¿Desea vaciar el carrito?</p>
+                </div>
+                <div class="modal-footer border-0 justify-content-center gap-2">
+                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-danger btn-sm fw-bold" onclick="confirmarVaciarCarrito()">Sí, vaciar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
@@ -231,8 +285,6 @@
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
         let paginaActual = 1;
 
-        // Manejo del Login
-        // Manejo del Login (CORREGIDO)
         async function ejecutarLogin(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -246,26 +298,56 @@
                 });
 
                 const data = await respuesta.json();
-                if (!respuesta.ok) return alert(data.error || "Error al ingresar.");
-
-                // 💡 Guardamos los datos mapeando correctamente la respuesta del Backend
-                localStorage.setItem('token', data.token);
-                localStorage.setItem('esAdmin', data.usuario.administrador); // 👈 MAPEO CORREGIDO AQUÍ
                 
-                alert("¡Bienvenido a NeoData Shop!");
-                location.reload(); 
+                if (!respuesta.ok) {
+                    const toast = document.createElement('div');
+                    toast.innerHTML = `
+                        <div style="position:fixed; top:20px; right:20px; z-index:9999;">
+                            <div class="toast show align-items-center text-white bg-danger border-0 shadow-lg" role="alert">
+                                <div class="d-flex">
+                                    <div class="toast-body fs-6">
+                                        <i class="bi bi-x-circle-fill me-2"></i>
+                                        ${data.error || "Datos incorrectos."} 
+                                    </div>
+                                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                                </div>
+                            </div>
+                        </div>`;
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                    return;
+                }
+
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('esAdmin', data.usuario.administrador); 
+                localStorage.setItem('nombreUsuario', data.usuario.nombre); 
+                
+                const toast = document.createElement('div'); 
+                toast.innerHTML = `
+                    <div style="position:fixed; top:20px; right:20px; z-index:9999;">
+                        <div class="toast show align-items-center text-white bg-dark border-0 shadow-lg" role="alert">
+                            <div class="d-flex">
+                                <div class="toast-body fs-6">
+                                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                    ¡Bienvenido a <strong>NeoData Shop</strong>!
+                                </div>
+                                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                            </div>
+                        </div>
+                    </div>`;
+                document.body.appendChild(toast);
+                setTimeout(() => { toast.remove(); location.reload(); }, 1000); 
 
             } catch (error) {
                 alert("Error de conexión al intentar iniciar sesión.");
             }
         }
 
-        // Manejo del Registro
         async function ejecutarRegistro(event) {
             event.preventDefault();
             const nombre = document.getElementById('reg-nombre').value;
             const apellido = document.getElementById('reg-apellido').value;
-            const dni = document.getElementById('reg-dni').value; // 👈 Captura el DNI
+            const dni = document.getElementById('reg-dni').value;
             const email = document.getElementById('reg-email').value;
             const password = document.getElementById('reg-password').value;
 
@@ -273,7 +355,7 @@
                 const respuesta = await fetch('http://localhost:3000/api/auth/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre, apellido, dni, email, password }) // 👈 Lo manda en el JSON
+                    body: JSON.stringify({ nombre, apellido, dni, email, password })
                 });
 
                 const data = await respuesta.json();
@@ -290,20 +372,19 @@
             }
         }
 
-        // Modificación del estado visual e inyección del botón administrativo
         function verificarSesionUI() {
             const token = localStorage.getItem('token');
             const esAdmin = localStorage.getItem('esAdmin');
+            const nombreUsuario = localStorage.getItem('nombreUsuario') || 'Usuario';
             const sessionContainer = document.getElementById('session-actions');
             const adminContainer = document.getElementById('admin-actions');
 
             if (token) {
                 sessionContainer.innerHTML = `
-                    <span class="text-white small me-3"><i class="bi bi-circle-fill text-success small me-1"></i> Online ${esAdmin == '1' ? '<strong>(Admin)</strong>' : ''}</span>
+                    <span class="text-white small me-3"><i class="bi bi-circle-fill text-success small me-1"></i> Bienvenido, <strong>${nombreUsuario}</strong>${esAdmin == '1' ? ' <span class="badge bg-warning text-dark ms-1">Admin</span>' : ''}</span>
                     <button class="btn btn-danger btn-sm" onclick="cerrarSesion()">Salir</button>
                 `;
 
-                // 🌟 SI ES ADMIN: Inyectamos el botón "Nuevo Producto" y el de "Gestionar Usuarios"
                 if (esAdmin == '1' && adminContainer) {
                     adminContainer.innerHTML = `
                         <a class="btn btn-outline-info btn-sm d-flex align-items-center gap-1 me-2" href="/usuarios">
@@ -326,11 +407,24 @@
         function cerrarSesion() {
             localStorage.removeItem('token');
             localStorage.removeItem('esAdmin');
-            alert("Sesión cerrada.");
-            location.reload();
+            localStorage.removeItem('nombreUsuario');
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="position:fixed; top:20px; right:20px; z-index:9999;">
+                    <div class="toast show align-items-center text-white bg-dark border-0 shadow-lg" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body fs-6">
+                                <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                Sesión cerrada.
+                            </div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); location.reload(); }, 1000);
         }
 
-        // 🆕 Función para descargar el reporte CSV de productos
         async function descargarReporteCSV() {
             try {
                 const token = localStorage.getItem('token'); 
@@ -364,7 +458,6 @@
             }
         }
 
-        // Carga de productos paginados
         async function loadProducts(selectedCategory = "", page = 1) {
             try {
                 paginaActual = page; 
@@ -373,7 +466,15 @@
                     url += `&categoria=${encodeURIComponent(selectedCategory)}`;
                 }
 
-                const respuesta = await fetch(url);
+                const token = localStorage.getItem('token');
+
+                const respuesta = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token ? `Bearer ${token}` : ''
+                    }
+                });
+                
                 const data = await respuesta.json();
                 const productos = data.productos || [];
                 
@@ -384,47 +485,63 @@
                     return;
                 }
 
-                // Recuperamos el estado admin para usarlo dentro del loop
                 const esAdmin = localStorage.getItem('esAdmin') == '1';
 
                 productos.forEach(producto => {
                     const sinStock = producto.Stock <= 0;
-                    
-                    // Definimos qué botones verá según su rol
+                    const estaHabilitado = producto.Habilitado !== 0;
+
                     let botonesAccion = '';
                     if (esAdmin) {
+                        const botonEstado = estaHabilitado 
+                            ? `<button class="btn btn-secondary btn-sm flex-fill fw-bold" onclick="cambiarEstadoProducto(${producto.ID_Producto}, 'deshabilitar')">
+                                    <i class="bi bi-eye-slash"></i> Deshabilitar
+                               </button>`
+                            : `<button class="btn btn-success btn-sm flex-fill fw-bold" onclick="cambiarEstadoProducto(${producto.ID_Producto}, 'habilitar')">
+                                    <i class="bi bi-eye"></i> Habilitar
+                               </button>`;
+
                         botonesAccion = `
                             <div class="d-flex gap-1">
-                                <button class="btn btn-warning btn-sm flex-fill fw-bold text-dark" onclick="abrirModalEditar(${producto.ID_Producto}, '${escape(JSON.stringify(producto))}')">
+                                <button class="btn btn-warning btn-sm flex-fill fw-bold text-dark" onclick="abrirModalEditar('${escape(JSON.stringify(producto))}')">
                                     <i class="bi bi-pencil-square"></i> Editar
                                 </button>
-                                <button class="btn btn-danger btn-sm flex-fill fw-bold" onclick="eliminarProducto(${producto.ID_Producto})">
-                                    <i class="bi bi-trash3"></i> Borrar
-                                </button>
+                                ${botonEstado}
                             </div>
                         `;
                     } else {
                         botonesAccion = `
                             <div class="d-grid">
-                                <button class="btn btn-dark btn-sm" ${sinStock ? 'disabled' : ''} onclick="procesarSeleccion(${producto.ID_Producto}, '${producto.Nombre}', ${producto.Precio})">
+                                <button class="btn btn-dark btn-sm" ${sinStock ? 'disabled' : ''} onclick="procesarSeleccion(${producto.ID_Producto}, '${producto.Nombre}', ${producto.Precio}, ${producto.Descuento || 0})">
                                     ${sinStock ? 'Sin Stock' : 'Añadir al carrito'}
                                 </button>
                             </div>
                         `;
                     }
 
+                    const badgeVisibilidad = esAdmin 
+                        ? `<span class="badge ${estaHabilitado ? 'bg-success' : 'bg-dark'} small mb-2 d-inline-block">
+                                ${estaHabilitado ? '<i class="bi bi-eye"></i> Catálogo Visible' : '<i class="bi bi-eye-slash"></i> Catálogo Oculto'}
+                           </span>`
+                        : '';
+
                     const cardHTML = `
                         <div class="col-12 col-md-6 col-lg-3 mb-4">
-                            <div class="card h-100 shadow-sm card-dinamica ${sinStock ? 'opacity-75' : ''}">
+                            <div class="card h-100 shadow-sm card-dinamica ${sinStock || !estaHabilitado ? 'opacity-75' : ''}">
                                 <img src="${producto.Ruta_Imagen || '/default.png'}" class="card-img-top p-2" alt="${producto.Nombre}" style="height: 200px; object-fit: contain;">
                                 <div class="card-body d-flex flex-column">
                                     <h5 class="card-title fw-bold">${producto.Nombre}</h5>
+                                    
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         <h6 class="text-primary fw-bold fs-5 m-0">$${Number(producto.Precio).toLocaleString()}</h6>
                                         ${producto.Descuento > 0 ? `<span class="badge bg-danger small">${producto.Descuento}% OFF</span>` : ''}
                                     </div>
+
+                                    ${badgeVisibilidad}
                                     <p class="card-text text-muted small mb-1"><strong>Marca:</strong> ${producto.Marca || 'Genérica'}</p>
-                                    <p class="card-text text-muted small mb-3"><strong>Categoría:</strong> ${producto.Category || 'General'}</p>
+                                    <p class="card-text text-muted small mb-1"><strong>Categoría:</strong> ${producto.Category || 'General'}</p>
+                                    <p class="card-text text-muted small mb-3"><strong>Garantía:</strong> ${producto.Garanty} ${producto.Garanty == 1 ? 'Año' : 'Años'}</p>
+                                    
                                     <div class="mt-auto">
                                         <p class="small fw-bold ${sinStock ? 'text-danger' : 'text-success'} mb-2">
                                             ${sinStock ? 'Agotado' : `Stock: ${producto.Stock} u.`}
@@ -446,7 +563,6 @@
                     contenedor.innerHTML += cardHTML;
                 });
 
-                // Controles de Paginación
                 const filaPaginacion = document.createElement('div');
                 filaPaginacion.className = "col-12 d-flex justify-content-center align-items-center gap-3 mt-3 mb-5";
                 filaPaginacion.innerHTML = `
@@ -461,7 +577,6 @@
                     </button>
                 `;
                 contenedor.appendChild(filaPaginacion);
-
                 actualizarInterfazCarrito();
 
             } catch (error) {
@@ -470,200 +585,72 @@
             }
         }
 
-        // --- MANEJO INTERNO DEL CARRITO ---
-        function procesarSeleccion(id, nombre, precio) {
-            const inputCantidad = document.getElementById(`cant-${id}`);
-            const cantidadSeleccionada = parseInt(inputCantidad.value) || 1;
-            const maxStock = parseInt(inputCantidad.getAttribute('max'));
-            
-            if (cantidadSeleccionada > maxStock) {
-                alert(`Lo sentimos, solo quedan ${maxStock} unidades disponibles.`);
-                return;
-            }
-            agregarAlCarrito(id, nombre, precio, cantidadSeleccionada);
-            inputCantidad.value = 1; 
-        }
-
-        function agregarAlCarrito(id, nombre, precio, cantidad) {
-            const existe = carrito.find(item => item.id === id);
-            if (existe) { existe.cantidad += cantidad; } else { carrito.push({ id, nombre, precio, cantidad }); }
-            localStorage.setItem('carrito', JSON.stringify(carrito)); 
-            actualizarInterfazCarrito();
-        }
-
-        function vaciarCarrito() {
-            if (confirm("¿Estás seguro de que querés vaciar por completo el carrito?")) {
-                carrito = [];
-                localStorage.removeItem('carrito'); 
-                actualizarInterfazCarrito();
-            }
-        }
-
-        function actualizarInterfazCarrito() {
-            const contador = document.getElementById('contador-carrito');
-            const listaProductos = document.getElementById('lista-carrito-productos');
-            const vistaVacia = document.getElementById('lista-carrito-vacia');
-            const totalTexto = document.getElementById('total-carrito');
-            const btnPagar = document.getElementById('btn-pagar');
-            const btnVaciar = document.getElementById('btn-vaciar');
-
-            const totalUnidades = carrito.reduce((sum, item) => sum + item.cantidad, 0);
-            contador.innerText = totalUnidades;
-
-            if (carrito.length === 0) {
-                vistaVacia.classList.remove('d-none');
-                listaProductos.classList.add('d-none');
-                btnPagar.setAttribute('disabled', 'true');
-                btnVaciar.setAttribute('disabled', 'true');
-                totalTexto.innerText = "$0";
-                return;
-            }
-
-            vistaVacia.classList.add('d-none');
-            listaProductos.classList.remove('d-none');
-            btnPagar.removeAttribute('disabled');
-            btnVaciar.removeAttribute('disabled');
-
-            listaProductos.innerHTML = "";
-            let dineroTotal = 0;
-
-            carrito.forEach(item => {
-                const subtotal = item.precio * item.cantidad;
-                dineroTotal += subtotal;
-                listaProductos.innerHTML += `
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div><span class="fw-bold">${item.nombre}</span><br><small class="text-muted">$${item.precio.toLocaleString()} x ${item.cantidad} u.</small></div>
-                        <span class="badge bg-dark rounded-pill fs-6">$${subtotal.toLocaleString()}</span>
-                    </li>`;
-            });
-            totalTexto.innerText = `$${dineroTotal.toLocaleString()}`;
-        }
-
-        async function enviarCheckout() {
-            const token = localStorage.getItem('token');
-            
-            if (!token) {
-                alert("Debes iniciar sesión para poder realizar una compra.");
-                bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
-                new bootstrap.Modal(document.getElementById('authModal')).show();
-                return;
-            }
-
-            if (carrito.length === 0) {
-                alert("Tu carrito está vacío.");
-                return;
-            }
-
-            const medioPago = document.getElementById('medio-pago').value;
-
-            const datosCompra = {
-                medioPago: parseInt(medioPago),
-                items: carrito 
-            };
-
-            try {
-                // 🌟 CORRECCIÓN AQUÍ: Agregamos /checkout al final de la ruta
-                const respuesta = await fetch('http://localhost:3000/api/productos/checkout', { 
-                    method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    },
-                    body: JSON.stringify(datosCompra) 
-                });
-                
-                const resultado = await respuesta.json();
-                if (!respuesta.ok) {
-                    alert(`Error de Compra:\n${resultado.error}`);
-                    return;
-                }
-
-                alert(resultado.mensaje);
-                
-                carrito = [];
-                localStorage.removeItem('carrito'); 
-                actualizarInterfazCarrito();
-                bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
-
-                loadProducts(document.getElementById('category-filter').value, paginaActual);
-
-            } catch (error) {
-                alert("Error de conexión con el servidor.");
-            }
-        }
-
-        // --- FUNCIONES CRUD ADMINISTRADOR ---
-
+        // 🌟 NUEVO: Setea los campos vacíos y la garantía entera en 1 año por defecto
         function abrirModalCrear() {
             document.getElementById('form-producto').reset();
-            document.getElementById('prod-id').value = ""; // Vaciamos ID indicando "NUEVO"
+            document.getElementById('prod-id').value = "";
+            document.getElementById('prod-garantia').value = "1"; // 1 Año por defecto
             document.getElementById('productoModalLabel').innerText = "Nuevo Producto";
             
             const modal = new bootstrap.Modal(document.getElementById('productoModal'));
             modal.show();
         }
 
-        function abrirModalEditar(id, productoEscapado) {
-            const producto = JSON.parse(unescape(productoEscapado));
+        // 🌟 NUEVO: Mapea los valores directos sin el tratamiento de strings de fechas (.split)
+        function abrirModalEditar(productoEscapeado) {
+            const producto = JSON.parse(unescape(productoEscapeado));
             
-            // Llenamos el formulario con los datos actuales de la DB
             document.getElementById('prod-id').value = producto.ID_Producto;
             document.getElementById('prod-nombre').value = producto.Nombre;
-            document.getElementById('prod-marca').value = producto.Marca || '';
+            document.getElementById('prod-marca').value = producto.Marca;
             document.getElementById('prod-categoria').value = producto.Category;
             document.getElementById('prod-precio').value = producto.Precio;
             document.getElementById('prod-stock').value = producto.Stock;
+            document.getElementById('prod-garantia').value = producto.Garanty; // Setea el número directamente
             document.getElementById('prod-descuento').value = producto.Descuento;
-            document.getElementById('prod-imagen').value = producto.Ruta_Imagen;
+            document.getElementById('prod-imagen').value = producto.Ruta_Imagen || "";
             
-            // Convertimos fecha de la base de datos (YYYY-MM-DDTHH:MM:SS) a YYYY-MM-DD requerido por inputs de tipo date
-            if (producto.Garanty) {
-                document.getElementById('prod-garantia').value = producto.Garanty.split('T')[0];
-            }
-
             document.getElementById('productoModalLabel').innerText = "Editar Producto";
+            
             const modal = new bootstrap.Modal(document.getElementById('productoModal'));
             modal.show();
         }
 
         async function guardarProducto(event) {
             event.preventDefault();
-            const token = localStorage.getItem('token');
-            if(!token) return alert("Inicia sesión como admin.");
-
             const id = document.getElementById('prod-id').value;
-            
+            const token = localStorage.getItem('token');
+
+            // 🌟 NUEVO: Recolecta Garanty como un entero nativo
             const payload = {
                 Nombre: document.getElementById('prod-nombre').value,
                 Marca: document.getElementById('prod-marca').value,
                 Category: document.getElementById('prod-categoria').value,
                 Precio: parseFloat(document.getElementById('prod-precio').value),
                 Stock: parseInt(document.getElementById('prod-stock').value),
-                Garanty: document.getElementById('prod-garantia').value,
-                Descuento: parseInt(document.getElementById('prod-descuento').value) || 0,
-                Ruta_Imagen: document.getElementById('prod-imagen').value || '/default.png'
+                Garanty: parseInt(document.getElementById('prod-garantia').value), 
+                Descuento: parseInt(document.getElementById('prod-descuento').value),
+                Ruta_Imagen: document.getElementById('prod-imagen').value
             };
 
-            // Si "id" tiene valor, la ruta destino es un PUT (/id). De lo contrario es un POST general
             const url = id ? `http://localhost:3000/api/productos/${id}` : 'http://localhost:3000/api/productos';
-            const metodo = id ? 'PUT' : 'POST';
+            const method = id ? 'PUT' : 'POST';
 
             try {
                 const respuesta = await fetch(url, {
-                    method: metodo,
-                    headers: { 
+                    method: method,
+                    headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` // Es importante enviar el token JWT
+                        'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify(payload)
                 });
 
                 const data = await respuesta.json();
-                if(!respuesta.ok) throw new Error(data.error || "Error en operación");
+                if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar el producto.");
 
                 alert(data.mensaje);
                 
-                // Ocultar modal manualmente y refrescar catálogo
                 const modalElement = document.getElementById('productoModal');
                 const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
                 modalInstance.hide();
@@ -675,8 +662,12 @@
             }
         }
 
-        async function eliminarProducto(id) {
-            if (!confirm("¿Estás completamente seguro de eliminar este producto? Esta acción no se puede deshacer.")) return;
+        async function cambiarEstadoProducto(id, accion) {
+            const mensajeConfirmacion = accion === 'habilitar'
+                ? "¿Deseas habilitar este producto para que sea visible en el catálogo de clientes?"
+                : "¿Deseas deshabilitar este producto? Se ocultará del catálogo general.";
+
+            if (!confirm(mensajeConfirmacion)) return;
             
             const token = localStorage.getItem('token');
             try {
@@ -686,18 +677,184 @@
                 });
 
                 const data = await respuesta.json();
-                if(!respuesta.ok) throw new Error(data.error || "No se pudo eliminar");
+                if(!respuesta.ok) throw new Error(data.error || `No se pudo ${accion} el producto`);
 
                 alert(data.mensaje);
-                loadProducts(document.getElementById('category-filter').value, paginaActual);
+                loadProducts(document.getElementById('category-filter').value, paginaActual); 
+                
             } catch (error) {
                 alert(error.message);
             }
         }
 
-        // Ejecución coordinada al cargar el DOM
+        // --- Lógica Carrito de Compras ---
+        function procesarSeleccion(id, nombre, precio, descuento = 0) {
+            const inputCant = document.getElementById(`cant-${id}`);
+            const cantidad = inputCant ? parseInt(inputCant.value) : 1;
+
+            const itemExistente = carrito.find(item => item.id === id);
+            if (itemExistente) {
+                itemExistente.cantidad += cantidad;
+                itemExistente.descuento = descuento;
+            } else {
+                carrito.push({ id, nombre, precio, cantidad, descuento });
+            }
+
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarInterfazCarrito();
+            
+            if(inputCant) inputCant.value = 1;
+        }
+
+        function obtenerCuponCarrito() {
+            const inputCupon = document.getElementById('cupon-carrito');
+            const valorCupon = inputCupon ? inputCupon.value.trim() : "";
+
+            if (valorCupon === "") return { id: 0, descuento: null };
+            if (valorCupon === "1") return { id: 1, descuento: 20 };
+            if (valorCupon === "2") return { id: 2, descuento: 15 };
+
+            return { invalido: true };
+        }
+
+        function actualizarInterfazCarrito() {
+            const contador = document.getElementById('contador-carrito');
+            const listaVacia = document.getElementById('lista-carrito-vacia');
+            const listaProductos = document.getElementById('lista-carrito-productos');
+            const totalElemento = document.getElementById('total-carrito');
+            const btnVaciar = document.getElementById('btn-vaciar');
+            const btnPagar = document.getElementById('btn-pagar');
+
+            const totalItems = carrito.reduce((sum, item) => sum + item.cantidad, 0);
+            contador.innerText = totalItems;
+
+            if (carrito.length === 0) {
+                listaVacia.classList.remove('d-none');
+                listaProductos.classList.add('d-none');
+                listaProductos.innerHTML = "";
+                totalElemento.innerText = "$0";
+                btnVaciar.setAttribute('disabled', 'true');
+                btnPagar.setAttribute('disabled', 'true');
+            } else {
+                listaVacia.classList.add('d-none');
+                listaProductos.classList.remove('d-none');
+                listaProductos.innerHTML = "";
+
+                const cupon = obtenerCuponCarrito();
+                let sumaTotal = 0;
+                carrito.forEach(item => {
+                    const descuentoAplicado = cupon.descuento ?? Number(item.descuento || 0);
+                    const subtotal = (item.precio * item.cantidad) * (1 - descuentoAplicado / 100);
+                    sumaTotal += subtotal;
+                    const textoDescuento = descuentoAplicado > 0 ? ` - ${descuentoAplicado}% OFF` : '';
+
+                    listaProductos.innerHTML += `
+                        <li class="list-group-item d-flex justify-content-between align-items-center small">
+                            <div>
+                                <span class="fw-bold text-dark">${item.nombre}</span>
+                                <br>
+                                <span class="text-muted">$${Number(item.precio).toLocaleString()} x ${item.cantidad}${textoDescuento}</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-primary">$${Math.round(subtotal).toLocaleString()}</span>
+                                <button class="btn btn-sm btn-outline-danger p-1 py-0" onclick="eliminarItemIndividual(${item.id})">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </li>
+                    `;
+                });
+
+                totalElemento.innerText = `$${Math.round(sumaTotal).toLocaleString()}`;
+                btnVaciar.removeAttribute('disabled');
+                btnPagar.removeAttribute('disabled');
+            }
+        }
+
+        function eliminarItemIndividual(id) {
+            carrito = carrito.filter(item => item.id !== id);
+            localStorage.setItem('carrito', JSON.stringify(carrito));
+            actualizarInterfazCarrito();
+        }
+
+        function abrirModalConfirmarVaciar() {
+            const modalVaciar = new bootstrap.Modal(document.getElementById('modalConfirmarVaciar'));
+            modalVaciar.show();
+        }
+
+        function confirmarVaciarCarrito() {
+            carrito = [];
+            localStorage.removeItem('carrito');
+            actualizarInterfazCarrito();
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmarVaciar')).hide();
+        }
+
+        async function enviarCheckout() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert("Debes iniciar sesión con tu cuenta para procesar una compra.");
+                bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+                new bootstrap.Modal(document.getElementById('authModal')).show();
+                return;
+            }
+
+            const medioPago = document.getElementById('medio-pago').value;
+            const cupon = obtenerCuponCarrito();
+            if (cupon.invalido) {
+                alert("Cupon Invalido");
+                return;
+            }
+
+            const productosPayload = carrito.map(item => ({
+                ID_Producto: item.id,
+                Cantidad: item.cantidad
+            }));
+
+            try {
+                const respuesta = await fetch('http://localhost:3000/api/productos/checkout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        ID_MedioPago: parseInt(medioPago),
+                        ID_Cupon: cupon.id,
+                        productos: productosPayload
+                    })
+                });
+
+                const data = await respuesta.json();
+                if (!respuesta.ok) throw new Error(data.error || "Ocurrió un problema al procesar la facturación.");
+
+                bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
+
+                document.getElementById('modal-id-factura').innerText = `#${data.id_factura}`;
+                document.getElementById('modal-total-compra').innerText = `$${Number(data.total).toLocaleString()}`;
+                
+                const ulLista = document.getElementById('modal-lista-productos');
+                ulLista.innerHTML = "";
+                carrito.forEach(item => {
+                    ulLista.innerHTML += `<li class="small text-muted"><i class="bi bi-caret-right-fill text-success me-1"></i>${item.nombre} (x${item.cantidad})</li>`;
+                });
+
+                carrito = [];
+                localStorage.removeItem('carrito');
+                actualizarInterfazCarrito();
+
+                const modalExito = new bootstrap.Modal(document.getElementById('modalCompraExitosa'));
+                modalExito.show();
+
+                loadProducts(document.getElementById('category-filter').value, paginaActual);
+
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             verificarSesionUI();
+            document.getElementById('cupon-carrito').addEventListener('input', actualizarInterfazCarrito);
             const filterValue = document.getElementById('category-filter').value;
             loadProducts(filterValue, 1);
         });
