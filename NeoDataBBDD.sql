@@ -6,7 +6,7 @@
 -- Tiempo de generación: 20-05-2026 a las 02:18:18
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
-DROP DATABASE neodatashop;
+-- DROP DATABASE neodatashop;
 
 CREATE DATABASE  neodatashop;
 
@@ -147,8 +147,8 @@ VALUES ('Devito');
 INSERT INTO `medio_pago` (`Modalidad`) 
 VALUES ('Credito');
 
-INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('20', 'Empleado');
-INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('15', 'Cupon de calle');
+INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('20', 'Corpotrativo');
+INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('15', 'Cupon');
 INSERT INTO `cupon` (`Descuento`, `Tipo`) VALUES ('0', 'Ninguno');
 
 
