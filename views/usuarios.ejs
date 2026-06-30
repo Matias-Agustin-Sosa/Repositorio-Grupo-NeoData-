@@ -104,6 +104,7 @@
 
         const token = localStorage.getItem('token');
         const esAdmin = localStorage.getItem('esAdmin');
+        let usuarioPendiente = null;
 
         if (!token || esAdmin !== '1') {
             mostrarMensaje("Acceso denegado. Solo administradores.","danger");
@@ -221,12 +222,18 @@
             }
         }
 
-        async function cambiarEstadoUsuario(id, accion) {
-            const mensajeConfirmacion = accion === 'habilitar' 
-                ? "¿Deseas habilitar a este usuario nuevamente?" 
-                : "¿Deseas deshabilitar a este usuario? Ya no podrá ingresar al sistema.";
+        function cambiarEstadoUsuario(id, accion) {
+            usuarioPendiente = {id, accion};
+            document.getElementById('mensajeConfirmacionUsuario').innerText =
+                accion === 'habilitar'
+                ? '¿Deseas habilitar a este usuario nuevamente?'
+                : '¿Deseas deshabilitar a este usuario? Ya no podrá ingresar al sistema.';
+            new bootstrap.Modal(document.getElementById('modalConfirmarEstadoUsuario')).show();
+        }
 
-            if(!confirm(mensajeConfirmacion)) return;
+        async function ejecutarCambioEstadoUsuario() {
+            const {id, accion} = usuarioPendiente;
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEstadoUsuario')).hide();
 
             try {
                 const res = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
@@ -245,5 +252,23 @@
 
         document.addEventListener('DOMContentLoaded', cargarUsuarios);
     </script>
+
+    <div class="modal fade" id="modalConfirmarEstadoUsuario" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">Confirmar acción</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="mensajeConfirmacionUsuario" class="mb-0"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="ejecutarCambioEstadoUsuario()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>

@@ -285,6 +285,7 @@
         const contenedor = document.getElementById('catalogo-contenedor');
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
         let paginaActual = 1;
+        let productoPendiente = null;
 
 
         function mostrarMensaje(mensaje, tipo = 'success') {
@@ -713,13 +714,19 @@
             }
         }
 
-        async function cambiarEstadoProducto(id, accion) {
-            const mensajeConfirmacion = accion === 'habilitar'
-                ? "¿Deseas habilitar este producto para que sea visible en el catálogo de clientes?"
-                : "¿Deseas deshabilitar este producto? Se ocultará del catálogo general.";
+        function cambiarEstadoProducto(id, accion) {
+            productoPendiente = {id, accion};
+            document.getElementById('mensajeConfirmacionProducto').innerText =
+                accion === 'habilitar'
+                ? '¿Deseas habilitar este producto para que sea visible en el catálogo de clientes?'
+                : '¿Deseas deshabilitar este producto? Se ocultará del catálogo general.';
+            new bootstrap.Modal(document.getElementById('modalConfirmarEstadoProducto')).show();
+        }
 
-            if (!confirm(mensajeConfirmacion)) return;
-            
+        async function ejecutarCambioEstadoProducto() {
+            const {id, accion} = productoPendiente;
+            bootstrap.Modal.getInstance(document.getElementById('modalConfirmarEstadoProducto')).hide();
+
             const token = localStorage.getItem('token');
             try {
                 const respuesta = await fetch(`http://localhost:3000/api/productos/${id}`, {
@@ -920,5 +927,23 @@
             loadProducts(filterValue, 1);
         });
     </script>
+
+    <div class="modal fade" id="modalConfirmarEstadoProducto" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title fw-bold">Confirmar acción</h5>
+                </div>
+                <div class="modal-body">
+                    <p id="mensajeConfirmacionProducto" class="mb-0"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" onclick="ejecutarCambioEstadoProducto()">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
