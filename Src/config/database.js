@@ -1,18 +1,16 @@
-// npm install sequelize mysql2 dotenv
-
 const { Sequelize } = require('sequelize');
-require('dotenv').config(); // Abre y lee las variables del archivo .env
+require('dotenv').config();
 
 // Configuración de la conexión apuntando a MySQL
 const sequelize = new Sequelize(
-    process.env.DB_NAME,     // Nombre de la BD
-    process.env.DB_USER,     // Usuario
-    process.env.DB_PASSWORD, // Tu contraseña
+    process.env.DB_NAME,
+    process.env.DB_USER,
+    process.env.DB_PASSWORD,
     {
         host: process.env.DB_HOST,
         port: process.env.DB_PORT || 3306,
-        dialect: process.env.DB_DIALECT, // Especificamos 'mysql'
-        logging: false // Evita llenar la consola con logs de SQL innecesarios
+        dialect: process.env.DB_DIALECT,
+        logging: false
     }
 );
 

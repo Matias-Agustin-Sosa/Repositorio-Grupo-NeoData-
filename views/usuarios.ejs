@@ -93,16 +93,23 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function mostrarMensaje(mensaje, tipo = 'success') {
+            const clases={success:'alert-success',danger:'alert-danger',warning:'alert-warning',info:'alert-primary'};
+            const c=document.querySelector('.container');
+            const d=document.createElement('div');
+            d.innerHTML=`<div class="alert ${clases[tipo]||'alert-success'} alert-dismissible fade show mt-3" role="alert">${mensaje}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`;
+            c.prepend(d);
+            setTimeout(()=>d.remove(),4000);
+        }
+
         const token = localStorage.getItem('token');
         const esAdmin = localStorage.getItem('esAdmin');
 
-        // Impedir el ingreso si no posee credenciales administrativas válidas
         if (!token || esAdmin !== '1') {
-            alert("Acceso denegado. Solo administradores.");
+            mostrarMensaje("Acceso denegado. Solo administradores.","danger");
             window.location.href = "/";
         }
 
-        // Cargar los usuarios en la tabla al iniciar
         async function cargarUsuarios() {
             try {
                 const res = await fetch('http://localhost:3000/api/usuarios', {
@@ -149,14 +156,14 @@
                     `;
                 });
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 
         function abrirModalCrear() {
             document.getElementById('form-usuario').reset();
             document.getElementById('user-id').value = '';
-            document.getElementById('user-password').required = true; // Obligatorio para usuarios nuevos
+            document.getElementById('user-password').required = true;
             document.getElementById('usuarioModalLabel').innerText = "Registrar Usuario";
             new bootstrap.Modal(document.getElementById('usuarioModal')).show();
         }
@@ -169,7 +176,6 @@
             document.getElementById('user-dni').value = u.DNI;
             document.getElementById('user-email').value = u.Email;
             
-            // 🌟 Asegúrate de que diga 'u.administrador' en minúsculas:
             document.getElementById('user-admin').value = u.administrador; 
             
             document.getElementById('user-password').required = false; 
@@ -207,11 +213,11 @@
                 const data = await res.json();
                 if(!res.ok) throw new Error(data.error || "Error en el guardado");
 
-                alert(data.mensaje);
+                mostrarMensaje(data.mensaje,"success");
                 bootstrap.Modal.getInstance(document.getElementById('usuarioModal')).hide();
                 cargarUsuarios();
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 
@@ -223,7 +229,6 @@
             if(!confirm(mensajeConfirmacion)) return;
 
             try {
-                // Seguimos usando el método DELETE que mapea a tu función 'remove' en el controlador
                 const res = await fetch(`http://localhost:3000/api/usuarios/${id}`, {
                     method: 'DELETE', 
                     headers: { 'Authorization': `Bearer ${token}` }
@@ -231,14 +236,13 @@
                 const data = await res.json();
                 if(!res.ok) throw new Error(data.error || `No se pudo ${accion} al usuario`);
 
-                alert(data.mensaje);
-                cargarUsuarios(); // 🌟 Esto vuelve a consultar la API y redibuja la tabla con los cambios actualizados
+                mostrarMensaje(data.mensaje,"success");
+                cargarUsuarios();
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 
-        // Carga automática inicial
         document.addEventListener('DOMContentLoaded', cargarUsuarios);
     </script>
 </body>

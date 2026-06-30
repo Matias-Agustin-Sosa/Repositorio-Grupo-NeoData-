@@ -1,4 +1,3 @@
-// src/middlewares/authMiddleware.js
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = {
@@ -11,7 +10,6 @@ const authMiddleware = {
         }
 
         try {
-            // 💡 CORREGIDO: Ahora usa 'secret_key_temporal' igual que el Login
             const verificado = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_temporal');
             
             req.usuario = verificado; 
@@ -22,7 +20,6 @@ const authMiddleware = {
     },
 
     esAdmin: (req, res, next) => {
-        // Doble seguridad: Validamos transformando a número
         if (!req.usuario || Number(req.usuario.administrador) !== 1) {
             return res.status(403).json({ error: "Permiso denegado. Se requieren privilegios de administrador." });
         }

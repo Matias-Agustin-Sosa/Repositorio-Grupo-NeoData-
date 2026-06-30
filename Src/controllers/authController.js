@@ -9,19 +9,19 @@ const authController = {
     login: async (req, res) => {
         const { email, password } = req.body;
         try {
-            // Buscamos el usuario por Email
+
             const usuario = await Usuario.findOne({ where: { Email: email } });
             
             if (!usuario || usuario.Password !== password) {
                 return res.status(401).json({ error: "Credenciales incorrectas." });
             }
 
-            // 🌟 NUEVA VALIDACIÓN: Si el usuario está deshabilitado, bloqueamos el ingreso
+
             if (usuario.Activo === 0) {
                 return res.status(403).json({ error: "Cuenta inhabilitada. Por favor, contacte al administrador." });
             }
 
-            // Generamos el token con la clave unificada
+
             const token = jwt.sign(
                 { id: usuario.ID_Usuario, administrador: usuario.administrador }, 
                 process.env.JWT_SECRET || 'secret_key_temporal', 
@@ -47,20 +47,20 @@ const authController = {
         try {
             const { nombre, apellido, dni, email, password } = req.body;
 
-            // Verificamos si el email ya existe en la BD
+
             const existe = await Usuario.findOne({ where: { Email: email } });
             if (existe) {
                 return res.status(400).json({ error: "El correo electrónico ya está registrado." });
             }
 
-            // Creamos el usuario en MySQL usando Sequelize
+
             const nuevoUsuario = await Usuario.create({
                 Nombre: nombre,
                 Apellido: apellido,
                 DNI: dni,          
                 Email: email,
                 Password: password, 
-                administrador: 0    // Cliente por defecto
+                administrador: 0
             });
 
             return res.status(201).json({ 
@@ -75,5 +75,4 @@ const authController = {
     }
 };
 
-// 💡 Exportamos el objeto único COMPLETO
 module.exports = authController;

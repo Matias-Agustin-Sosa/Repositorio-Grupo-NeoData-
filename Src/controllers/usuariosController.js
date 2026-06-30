@@ -1,7 +1,6 @@
 const Usuario = require('../models/Usuario');
 
 const usuariosController = {
-    // Listar todos los usuarios
     getAll: async (req, res) => {
         try {
             const usuarios = await Usuario.findAll(); 
@@ -12,7 +11,6 @@ const usuariosController = {
         }
     },
 
-    // Obtener un usuario por ID
     getById: async (req, res) => {
         try {
             const { id } = req.params;
@@ -24,7 +22,6 @@ const usuariosController = {
         }
     },
 
-    // En src/controllers/usuariosController.js
     create: async (req, res) => {
         try {
             const { Nombre, Apellido, DNI, Email, Administrador, Password } = req.body;
@@ -37,7 +34,6 @@ const usuariosController = {
                 Apellido,
                 DNI,
                 Email,
-                // 🌟 CORRECCIÓN: Asignamos el valor a la propiedad con minúscula 'administrador'
                 administrador: parseInt(Administrador) || 0,
                 Password 
             });
@@ -57,7 +53,6 @@ const usuariosController = {
             const usuario = await Usuario.findByPk(id);
             if (!usuario) return res.status(404).json({ error: "Usuario no encontrado." });
 
-            // 🌟 CORRECCIÓN: Usamos 'administrador' en minúscula para que Sequelize lo detecte
             const updateData = { Nombre, Apellido, DNI, Email, administrador: parseInt(Administrador) };
             
             if (Password && Password.trim() !== "") {
@@ -72,14 +67,12 @@ const usuariosController = {
         }
     },
 
-    // Deshabilitar un usuario (Borrado lógico)
     remove: async (req, res) => {
         try {
             const { id } = req.params;
             const usuario = await Usuario.findByPk(id);
             if (!usuario) return res.status(404).json({ error: "Usuario no encontrado." });
 
-            // 🌟 CORRECCIÓN: Usamos 'Activo' con Mayúscula
             const nuevoEstado = usuario.Activo === 0 ? 1 : 0;
             
             await usuario.update({ Activo: nuevoEstado });

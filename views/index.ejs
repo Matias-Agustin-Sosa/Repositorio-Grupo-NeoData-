@@ -286,6 +286,29 @@
         let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
         let paginaActual = 1;
 
+
+        function mostrarMensaje(mensaje, tipo = 'success') {
+            const clases = {
+                success: 'bg-success',
+                danger: 'bg-danger',
+                warning: 'bg-warning text-dark',
+                info: 'bg-primary'
+            };
+
+            const toast = document.createElement('div');
+            toast.innerHTML = `
+                <div style="position:fixed; top:20px; right:20px; z-index:9999;">
+                    <div class="toast show align-items-center text-white border-0 shadow-lg ${clases[tipo] || 'bg-success'}" role="alert">
+                        <div class="d-flex">
+                            <div class="toast-body">${mensaje}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="this.closest('div[style]').remove()"></button>
+                        </div>
+                    </div>
+                </div>`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
         async function ejecutarLogin(event) {
             event.preventDefault();
             const email = document.getElementById('login-email').value;
@@ -340,7 +363,7 @@
                 setTimeout(() => { toast.remove(); location.reload(); }, 1000); 
 
             } catch (error) {
-                alert("Error de conexión al intentar iniciar sesión.");
+                mostrarMensaje("Error de conexión al intentar iniciar sesión.","danger");
             }
         }
 
@@ -360,9 +383,9 @@
                 });
 
                 const data = await respuesta.json();
-                if (!respuesta.ok) return alert(data.error || "Error al registrarse.");
+                if (!respuesta.ok) { mostrarMensaje(data.error || "Error al registrarse.","danger"); return; }
 
-                alert("¡Registro exitoso! Ya puedes iniciar sesión en la pestaña de Ingresar.");
+                mostrarMensaje("¡Registro exitoso! Ya puedes iniciar sesión en la pestaña de Ingresar.","success");
                 document.getElementById('form-registro').reset();
                 
                 const loginTab = new bootstrap.Tab(document.getElementById('login-tab'));
@@ -430,7 +453,7 @@
             try {
                 const token = localStorage.getItem('token'); 
                 if (!token) {
-                    alert("Acceso denegado.");
+                    mostrarMensaje("Acceso denegado.","danger");
                     return;
                 }
 
@@ -440,8 +463,8 @@
                 });
 
                 if (!respuesta.ok) {
-                    if (respuesta.status === 403) alert("Error: No tienes permisos de Administrador.");
-                    else alert("Error al generar el reporte.");
+                    if (respuesta.status === 403) mostrarMensaje("Error: No tienes permisos de Administrador.","danger");
+                    else mostrarMensaje("Error al generar el reporte.","danger");
                     return;
                 }
 
@@ -455,7 +478,7 @@
                 a.remove();
             } catch (error) {
                 console.error(error);
-                alert("Error al conectar con el servidor de reportes.");
+                mostrarMensaje("Error al conectar con el servidor de reportes.","danger");
             }
         }
 
@@ -608,7 +631,6 @@
             }
         }
 
-        // 🌟 NUEVO: Setea los campos vacíos y la garantía entera en 1 año por defecto
         function abrirModalCrear() {
             document.getElementById('form-producto').reset();
             document.getElementById('prod-id').value = "";
@@ -619,7 +641,6 @@
             modal.show();
         }
 
-        // 🌟 NUEVO: Mapea los valores directos sin el tratamiento de strings de fechas (.split)
         function abrirModalEditar(productoEscapeado) {
             const producto = JSON.parse(unescape(productoEscapeado));
             
@@ -630,7 +651,7 @@
             document.getElementById('prod-categoria').value = producto.Category;
             document.getElementById('prod-precio').value = producto.Precio;
             document.getElementById('prod-stock').value = producto.Stock;
-            document.getElementById('prod-garantia').value = producto.Garanty; // Setea el número directamente
+            document.getElementById('prod-garantia').value = producto.Garanty;
             document.getElementById('prod-descuento').value = producto.Descuento;
             document.getElementById('prod-imagen').value = producto.Ruta_Imagen || "";
             
@@ -647,11 +668,10 @@
             const categoria = document.getElementById('prod-categoria').value.trim();
 
             if (!categoria) {
-                alert("La categoria es obligatoria.");
+                mostrarMensaje("La categoría es obligatoria.","warning");
                 return;
             }
 
-            // 🌟 NUEVO: Recolecta Garanty como un entero nativo
             const payload = {
                 Nombre: document.getElementById('prod-nombre').value,
                 Marca: document.getElementById('prod-marca').value,
@@ -680,7 +700,7 @@
                 if (!respuesta.ok) throw new Error(data.error || "No se pudo guardar el producto.");
 
                 agregarCategoriaDisponible(categoria);
-                alert(data.mensaje);
+                mostrarMensaje(data.mensaje,"success");
                 
                 const modalElement = document.getElementById('productoModal');
                 const modalInstance = bootstrap.Modal.getInstance(modalElement) || new bootstrap.Modal(modalElement);
@@ -689,7 +709,7 @@
                 loadProducts(document.getElementById('category-filter').value, paginaActual);
 
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 
@@ -710,15 +730,14 @@
                 const data = await respuesta.json();
                 if(!respuesta.ok) throw new Error(data.error || `No se pudo ${accion} el producto`);
 
-                alert(data.mensaje);
+                mostrarMensaje(data.mensaje,"success");
                 loadProducts(document.getElementById('category-filter').value, paginaActual); 
                 
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 
-        // --- Lógica Carrito de Compras ---
         function procesarSeleccion(id, nombre, precio, descuento = 0) {
             const inputCant = document.getElementById(`cant-${id}`);
             const cantidad = inputCant ? parseInt(inputCant.value) : 1;
@@ -834,7 +853,7 @@
         async function enviarCheckout() {
             const token = localStorage.getItem('token');
             if (!token) {
-                alert("Debes iniciar sesión con tu cuenta para procesar una compra.");
+                mostrarMensaje("Debes iniciar sesión con tu cuenta para procesar una compra.","warning");
                 bootstrap.Modal.getInstance(document.getElementById('modalCarrito')).hide();
                 new bootstrap.Modal(document.getElementById('authModal')).show();
                 return;
@@ -843,7 +862,7 @@
             const medioPago = document.getElementById('medio-pago').value;
             const cupon = obtenerCuponCarrito();
             if (cupon.invalido) {
-                alert("Cupon Invalido");
+                mostrarMensaje("Cupón inválido","warning");
                 return;
             }
 
@@ -890,7 +909,7 @@
                 loadProducts(document.getElementById('category-filter').value, paginaActual);
 
             } catch (error) {
-                alert(error.message);
+                mostrarMensaje(error.message,"danger");
             }
         }
 

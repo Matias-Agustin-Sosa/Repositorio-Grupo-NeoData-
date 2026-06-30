@@ -1,4 +1,3 @@
-// src/controllers/productosController.js
 const { Op } = require('sequelize'); 
 const Producto = require('../models/Producto');
 const { getPaginationParams } = require('../utils/pagination');
@@ -14,7 +13,6 @@ const productosController = {
             const { limit, offset, page } = getPaginationParams(req.query, 4);
             const whereCondition = {};
 
-            // Filtros de vigencia por fecha
             whereCondition.validFrom = { [Op.lte]: today };
             whereCondition.validTo = { [Op.gte]: today };
 
@@ -22,15 +20,11 @@ const productosController = {
                 whereCondition.Category = categoria;
             }
 
-            // 🌟 NUEVA LÓGICA: Filtrado por Rol (Habilitado 1 o 0)
-            // Revisamos si el middleware 'verificarToken' adjuntó el usuario y es administrador
             const esAdmin = req.usuario && Number(req.usuario.administrador) === 1;
 
             if (!esAdmin) {
-                // Si NO es administrador (es cliente o visitante), solo ve productos con Habilitado: 1
                 whereCondition.Habilitado = 1;
             }
-            // Si es admin, no agregamos la condición 'Habilitado' para que traiga tanto 1 como 0
 
             const { count, rows: productos } = await Producto.findAndCountAll({ 
                 where: whereCondition,
@@ -73,10 +67,10 @@ const productosController = {
                 Category,
                 Precio: parseFloat(Precio),
                 Stock: parseInt(Stock),
-                Garanty: parseInt(Garanty), // 🌟 Forzamos que se guarde como entero numérico
+                Garanty: parseInt(Garanty),
                 Descuento: parseInt(Descuento),
                 Ruta_Imagen,
-                Habilitado: 1 // Habilitado por defecto al crearse
+                Habilitado: 1
             });
 
             return res.status(201).json({ 
@@ -89,7 +83,6 @@ const productosController = {
         }
     },
     
-    // 🛒 2. PROCESAR LA COMPRA DEL CARRITO (Factura + Detalle + Descontar Stock)
     checkout: async (req, res) => {
         let t;
         try {
@@ -131,7 +124,7 @@ const productosController = {
 
             t = await sequelize.transaction();
 
-            // Inserción en la tabla factura
+
             const [facturaResultado, facturaMetadata] = await sequelize.query(
                 `INSERT INTO factura (Fecha, ID_usuario, ID_MedioPago) VALUES (?, ?, ?)`,
                 { replacements: [fechaActual, idUsuario, medioPago], transaction: t }
@@ -142,7 +135,6 @@ const productosController = {
             let totalCompra = 0;
             let totalSinDescuentos = 0;
 
-            // Formatear ID_Producto_Cantidad (Ej: "3,3,4")
             let listaIdsRepetidos = [];
             for (const item of items) {
                 const producto = await Producto.findByPk(item.id, { transaction: t });
@@ -185,13 +177,12 @@ const productosController = {
                 );
             }
 
-            // Inserción en la tabla detalle
             await sequelize.query(
                 `INSERT INTO detalle (ID_Factura, ID_Producto, ID_Producto_Cantidad, ID_Cupon) VALUES (?, ?, ?, ?)`,
                 { replacements: [idFacturaGenerada, primerProductoId, cadenaProductoCantidad, idCupon], transaction: t }
             );
 
-            // Descontar Stock
+
             for (const item of items) {
                 await sequelize.query(
                     `UPDATE producto SET Stock = Stock - ? WHERE ID_Producto = ?`,
@@ -214,7 +205,6 @@ const productosController = {
         }
     },
 
-    // 🆕 ACTUALIZAR PRODUCTO (Real)
     update: async (req, res) => {
         try {
             const { id } = req.params;
@@ -241,14 +231,13 @@ const productosController = {
         }
     },
 
-    // 🆕 DESHABILITAR/HABILITAR PRODUCTO (Borrado lógico)
     remove: async (req, res) => {
         try {
             const { id } = req.params;
             const producto = await Producto.findByPk(id);
             if (!producto) return res.status(404).json({ error: "Producto no encontrado." });
 
-            // 🌟 Cambiamos el estado: si es 0 pasa a 1, si es 1 pasa a 0
+
             const nuevoEstado = producto.Habilitado === 0 ? 1 : 0;
             await producto.update({ Habilitado: nuevoEstado });
 
